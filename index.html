@@ -91,7 +91,7 @@
 #diagnostic-panel .bad{color:#ff9b9b}
 </style>
 <div id="diagnostic-panel">
-  <strong>DIAGNÓSTICO V6.2</strong>
+  <strong>DIAGNÓSTICO V6.2 · ACABADOS</strong>
   <div id="diagnostic-status">HTML: OK
 WebGL: comprobando…
 Módulo Three.js: esperando…</div>
@@ -253,7 +253,7 @@ Módulo Three.js: esperando…</div>
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
         renderer.outputColorSpace = THREE.SRGBColorSpace;
         renderer.sortObjects = true;
-        renderer.toneMappingExposure = 1.08;
+        renderer.toneMappingExposure = 0.92;
         renderer.physicallyCorrectLights = true;
         container.appendChild(renderer.domElement);
 
@@ -271,11 +271,11 @@ Módulo Three.js: esperando…</div>
         controls.minPolarAngle = 0.01; controls.maxPolarAngle = Math.PI / 2 - 0.01;   
         controls.minDistance = 50; controls.maxDistance = 3500;               
 
-        const ambientLight = new THREE.AmbientLight(0xf2e6d5, 0.38); scene.add(ambientLight);
-        const hemiLight = new THREE.HemisphereLight(0xfff3df, 0x35404b, 0.52); scene.add(hemiLight);
-        const dirLight = new THREE.DirectionalLight(0xffe6c7, 2.15); dirLight.position.set(-260, 520, 360); dirLight.castShadow = true; dirLight.shadow.mapSize.width = 2048; dirLight.shadow.mapSize.height = 2048; dirLight.shadow.camera.near = 1; dirLight.shadow.camera.far = 1900; dirLight.shadow.bias = -0.00008; dirLight.shadow.radius = 3; scene.add(dirLight);
+        const ambientLight = new THREE.AmbientLight(0xf2e6d5, 0.32); scene.add(ambientLight);
+        const hemiLight = new THREE.HemisphereLight(0xfff3df, 0x35404b, 0.46); scene.add(hemiLight);
+        const dirLight = new THREE.DirectionalLight(0xffe6c7, 1.85); dirLight.position.set(-260, 520, 360); dirLight.castShadow = true; dirLight.shadow.mapSize.width = 2048; dirLight.shadow.mapSize.height = 2048; dirLight.shadow.camera.near = 1; dirLight.shadow.camera.far = 1900; dirLight.shadow.bias = -0.00008; dirLight.shadow.radius = 3; scene.add(dirLight);
         const fillLight = new THREE.DirectionalLight(0xbfc9d2, 0.18); fillLight.position.set(320, 280, -280); scene.add(fillLight);
-        const frontFill = new THREE.DirectionalLight(0xfff2dc, 0.42); frontFill.position.set(120, 220, 520); scene.add(frontFill);
+        const frontFill = new THREE.DirectionalLight(0xfff2dc, 0.30); frontFill.position.set(120, 220, 520); scene.add(frontFill);
 
         // =========================================================================
         // GENERADORES PROCEDIMENTALES DE TEXTURAS EN ALTA DEFINICIÓN
@@ -621,29 +621,8 @@ Módulo Three.js: esperando…</div>
             const v2 = [xP3, zP3]; // (27.34, 498)  -> 148 cm Fondo
             const v3 = [xP4, zP4]; // (3.55, 487)   -> 32 cm Chaflán
             const v4 = v4_Suelo; // (2.91, 400)   -> 87 cm Oeste
-
-            // 1. Paneles interiores del Cobertizo Sur
-            const pIzq = new THREE.Mesh(new THREE.BoxGeometry(espP, hTotalParedes, Math.hypot(v1[0] - v0[0], v1[1] - v0[1])), matTecaLisa);
-            pIzq.position.set(v1[0] - espP / 2, yCentroMuro, (v0[1] + v1[1]) / 2);
-            nichoSurGroup.add(pIzq);
-
-            const pFondo = new THREE.Mesh(new THREE.BoxGeometry(148, hTotalParedes, espP), matTecaLisa);
-            pFondo.position.set((v1[0] + v2[0]) / 2, yCentroMuro, v1[1] - espP / 2);
-            nichoSurGroup.add(pFondo);
-            
-            const lenChaflan = Math.hypot(v3[0] - v2[0], v3[1] - v2[1]), angChaflan = Math.atan2(v3[1] - v2[1], v3[0] - v2[0]);
-            const pChaflan = new THREE.Mesh(new THREE.BoxGeometry(lenChaflan, hTotalParedes, espP), matTecaLisa);
-            pChaflan.rotation.y = -angChaflan;
-            pChaflan.position.set((v2[0] + v3[0]) / 2, yCentroMuro, (v2[1] + v3[1]) / 2);
-            nichoSurGroup.add(pChaflan);
-            
-            const lenDer = Math.hypot(v4[0] - v3[0], v4[1] - v3[1]), angDer = Math.atan2(v4[1] - v3[1], v4[0] - v3[0]);
-            const pDer = new THREE.Mesh(new THREE.BoxGeometry(lenDer, hTotalParedes, espP), matTecaLisa);
-            pDer.rotation.y = -angDer;
-            pDer.position.set((v3[0] + v4[0]) / 2, yCentroMuro, (v3[1] + v4[1]) / 2);
-            nichoSurGroup.add(pDer);
-            
-            const lenFront = Math.hypot(v0[0] - v4[0], v0[1] - v4[1]);
+            // Muros laterales del nicho: se conservan los muros arquitectónicos existentes.
+const lenFront = Math.hypot(v0[0] - v4[0], v0[1] - v4[1]);
             // El antiguo foso/desagüe se elimina: el interior queda sobre un escalón
             // de 5 cm, con caída total de 1 cm hacia el frente (Z=400).
             const shapeEscalon = new THREE.Shape();
@@ -689,7 +668,10 @@ Módulo Three.js: esperando…</div>
             for (let i = 0; i < posPC.count; i++) posPC.setXYZ(i, posPC.getX(i), 220.0, posPC.getY(i));
             posPC.needsUpdate = true;
             geomPlanoCloset.computeVertexNormals();
-            nichoSurGroup.add(new THREE.Mesh(geomPlanoCloset, matTecaLisa));
+            const cieloRasoMineral = new THREE.Mesh(geomPlanoCloset, matMuro);
+            cieloRasoMineral.name = 'Cielo_Raso_Lavanderia_Estuco_Mineral';
+            cieloRasoMineral.receiveShadow = true;
+            nichoSurGroup.add(cieloRasoMineral);
 
             // =========================================================================
             // TECHO NEGRO MATE CON ALERO FRONTAL 20 CM (Z = 380) Y PENDIENTE FRONTAL
@@ -766,10 +748,11 @@ Módulo Three.js: esperando…</div>
             posRoof.needsUpdate = true;
             extrudeTechoGeom.computeVertexNormals();
             
-            const losaTechoNegra = new THREE.Mesh(extrudeTechoGeom, matTechoNegro);
-            losaTechoNegra.castShadow = true;
-            losaTechoNegra.receiveShadow = true;
-            nichoSurGroup.add(losaTechoNegra);
+            const losaTechoMineral = new THREE.Mesh(extrudeTechoGeom, matMuro);
+            losaTechoMineral.name = 'Techo_Lavanderia_Estuco_Mineral';
+            losaTechoMineral.castShadow = true;
+            losaTechoMineral.receiveShadow = true;
+            nichoSurGroup.add(losaTechoMineral);
 
             // =========================================================================
             // ZANJITA EMBUTIDA EN EL PLANO SUPERIOR (SIN BORDES QUE BLOQUEEN EL AGUA)
@@ -942,8 +925,8 @@ Módulo Three.js: esperando…</div>
                 grupo: puertaCorredizaGroup,
                 abierto: false,
                 posX_cerrado: (v0[0] + v4[0]) / 2,
-                // Desplazamiento suficiente para despejar todo el vano y quedar frente al muro falso.
-                posX_abierto: (v0[0] + v4[0]) / 2 - wPuertaCorrediza - 4.0
+                // Abre hacia el lado contrario: se desplaza completamente hacia la derecha.
+                posX_abierto: (v0[0] + v4[0]) / 2 + wPuertaCorrediza + 4.0
             };
             objetosInteractivos.push(hitboxPuertaCorrediza);
 
@@ -1229,9 +1212,9 @@ Módulo Three.js: esperando…</div>
             const refriW = 92, refriH = 180, refriD = 80;
             // Refrigerador French Door realista: cuerpo y cuatro superficies frontales
             // separadas para que las dos puertas superiores y el congelador sean visibles.
-            const matRefriInox = new THREE.MeshStandardMaterial({ color: 0xe6e9e8, metalness: 0.72, roughness: 0.30, envMapIntensity: 1.55 });
-            const matRefriBorde = new THREE.MeshStandardMaterial({ color: 0xbfc4c4, metalness: 0.76, roughness: 0.24, envMapIntensity: 1.5 });
-            const matRefriSombra = new THREE.MeshStandardMaterial({ color: 0x777d7e, metalness: 0.45, roughness: 0.36 });
+            const matRefriInox = new THREE.MeshStandardMaterial({ color: 0xc5c9c8, metalness: 0.58, roughness: 0.46, envMapIntensity: 0.78 });
+            const matRefriBorde = new THREE.MeshStandardMaterial({ color: 0xaeb3b2, metalness: 0.60, roughness: 0.42, envMapIntensity: 0.75 });
+            const matRefriSombra = new THREE.MeshStandardMaterial({ color: 0x686e6e, metalness: 0.35, roughness: 0.48, envMapIntensity: 0.65 });
             const yRefriBase = CONFIG.barra.altoZocalo + 1.2;
             const zFrenteRefri = refriD + 8.5;
             const refriBase = crearCaja(refriW, refriH, refriD, matRefriInox); refriBase.position.set(centerX, yRefriBase + refriH / 2, refriD / 2 + 5); grupoNichoNorte.add(refriBase);
@@ -1248,7 +1231,7 @@ Módulo Three.js: esperando…</div>
             const seamH = crearCaja(refriW - 3, 0.9, 2.5, matRefriSombra); seamH.position.set(centerX, yRefriBase + lowerH + 1.2, zFrenteRefri + 1.25); grupoNichoNorte.add(seamH);
 
             // Manijas verticales de las dos puertas francesas y manija horizontal del congelador.
-            const handleV = new THREE.MeshStandardMaterial({ color: 0x4e5557, metalness: 0.96, roughness: 0.16 });
+            const handleV = new THREE.MeshStandardMaterial({ color: 0x4b5051, metalness: 0.78, roughness: 0.32, envMapIntensity: 0.72 });
             function agregarManijaVertical(x) {
                 const h = new THREE.Mesh(new THREE.CylinderGeometry(1.15, 1.15, 78, 18), handleV);
                 h.position.set(x, upperY, zFrenteRefri + 3.2); grupoNichoNorte.add(h);
