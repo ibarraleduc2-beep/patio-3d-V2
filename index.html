@@ -91,7 +91,7 @@
 #diagnostic-panel .bad{color:#ff9b9b}
 </style>
 <div id="diagnostic-panel">
-  <strong>DIAGNÓSTICO V6.2 · ACABADOS</strong>
+  <strong>DIAGNÓSTICO V6.2 · MURO FALSO</strong>
   <div id="diagnostic-status">HTML: OK
 WebGL: comprobando…
 Módulo Three.js: esperando…</div>
@@ -834,14 +834,14 @@ const lenFront = Math.hypot(v0[0] - v4[0], v0[1] - v4[1]);
             nichoSurGroup.add(torreGroup);
 
             // =========================================================================
-            // V6.1 — PUERTA CORREDIZA ÚNICA DE PVC TECA, AL FRENTE DEL MURO FALSO
-            // Abre hacia la izquierda y, al abrir, queda completamente delante del muro falso.
+            // V6.2 — PUERTA CORREDIZA ÚNICA DE PVC TECA, DETRÁS DEL MURO FALSO
+            // Desliza hacia la derecha y, al abrir, queda detrás del muro falso.
             // =========================================================================
             const wHuecoNichoSur = v0[0] - v4[0];
             const altoMarcoSuperior = 11.0;
             const hPuertaCorrediza = 209.0;
             const wPuertaCorrediza = wHuecoNichoSur - 2.0;
-            const zPlanoPuerta = 396.8; // 3.2 cm delante del plano frontal Z=400
+            const zPlanoPuerta = 399.0; // Puerta detrás del muro falso; frente del muro falso en Z≈395.5
 
             // V6.2 FIX: la puerta corrediza seguía llamando a esta función,
             // pero la definición había quedado fuera al reemplazar las puertas abatibles.
@@ -888,11 +888,15 @@ const lenFront = Math.hypot(v0[0] - v4[0], v0[1] - v4[1]);
 
                 return leafGroup;
             }
-
-            // Friso superior que permanece fijo.
-            const frisoSuperior = crearCaja(wHuecoNichoSur + 2.0, altoMarcoSuperior, 2.5, matTecaLisa);
-            frisoSuperior.position.set((v0[0] + v4[0]) / 2, 210.0 + altoMarcoSuperior / 2, zPlanoPuerta);
-            nichoSurGroup.add(frisoSuperior);
+            // Muro falso frontal de estuco mineral, adelantado 4.5 cm hacia el frente.
+            // La cámara posterior oculta el riel y el cabezal de la puerta.
+            const profundidadMuroFalso = 4.5;
+            const anchoMuroFalso = wPuertaCorrediza + 210.0;
+            const muroFalsoSuperior = crearCaja(anchoMuroFalso, altoMarcoSuperior + 1.5, profundidadMuroFalso, matMuro);
+            muroFalsoSuperior.name = 'Muro_Falso_Lavanderia_Riel_Oculto';
+            // Frente del muro falso en Z=395.5; puerta y riel quedan detrás.
+            muroFalsoSuperior.position.set((v0[0] + v4[0]) / 2, 210.75 + (altoMarcoSuperior + 1.5) / 2, 397.75);
+            nichoSurGroup.add(muroFalsoSuperior);
 
             // Hoja corrediza única.
             const puertaCorredizaGroup = new THREE.Group();
@@ -1380,7 +1384,7 @@ const lenFront = Math.hypot(v0[0] - v4[0], v0[1] - v4[1]);
                             <li><strong>Muro Este:</strong> 400 cm totales (Ventanal de 265 cm).</li>
                             <li><strong>Muro Oeste:</strong> 487 cm de longitud; altura total 260 cm, con 100 cm de muro inferior + 100 cm de vano + 60 cm de muro superior; vano de 300 cm.</li>
                             <li><strong>Muro Sur 1 (Muro Falso Recto a 90°):</strong> Tramo de 215 cm de longitud ejecutado en bastidor de acero galvanizado con panel de cemento Durock de 1/2''.</li>
-                            <li><strong>Cobertizo Sur (Lavandería):</strong> Muro Este de 98 cm, Muro Oeste de 87 cm, Fondo de 148 cm y Chaflán de 32 cm. Puerta corrediza única de PVC Teca que abre hacia la izquierda y queda por delante del muro falso, zoclo superior de 11 cm sobre la puerta, cubierta negra mate con zanja embutida directa y bajante vertical recto interior derecho (Oeste), y Torre de lavado negra (5 cm al frente, 10 cm atrás, 2.5 cm a la izquierda).</li>
+                            <li><strong>Cobertizo Sur (Lavandería):</strong> Muro Este de 98 cm, Muro Oeste de 87 cm, Fondo de 148 cm y Chaflán de 32 cm. Puerta corrediza única de PVC Teca que abre hacia la izquierda y queda detrás del muro falso, zoclo superior de 11 cm sobre la puerta, cubierta negra mate con zanja embutida directa y bajante vertical recto interior derecho (Oeste), y Torre de lavado negra (5 cm al frente, 10 cm atrás, 2.5 cm a la izquierda).</li>
                         </ul>
                     </div>
                     <div class="data-section">
