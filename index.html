@@ -860,6 +860,52 @@ Módulo Three.js: esperando…</div>
             const wPuertaCorrediza = wHuecoNichoSur - 2.0;
             const zPlanoPuerta = 396.8; // 3.2 cm delante del plano frontal Z=400
 
+            // V6.2 FIX: la puerta corrediza seguía llamando a esta función,
+            // pero la definición había quedado fuera al reemplazar las puertas abatibles.
+            function crearHojaLouverTeca(wLeaf, hLeaf, isLeft) {
+                const leafGroup = new THREE.Group();
+                const grosorMarcoL = 3.5, anchoPerfil = 5.0;
+                const hSlat = 8.0, pasoSlat = 10.0, numSlats = Math.max(0, Math.floor((hLeaf - 12.0) / pasoSlat));
+                const anguloSlat = Math.PI * 0.21;
+
+                const largueroIzq = crearCaja(anchoPerfil, hLeaf, grosorMarcoL, matTecaLisa);
+                largueroIzq.position.set(-wLeaf / 2 + anchoPerfil / 2, hLeaf / 2, 0);
+                leafGroup.add(largueroIzq);
+
+                const largueroDer = crearCaja(anchoPerfil, hLeaf, grosorMarcoL, matTecaLisa);
+                largueroDer.position.set(wLeaf / 2 - anchoPerfil / 2, hLeaf / 2, 0);
+                leafGroup.add(largueroDer);
+
+                const travesanoSup = crearCaja(wLeaf - anchoPerfil * 2, anchoPerfil, grosorMarcoL, matTecaLisa);
+                travesanoSup.position.set(0, hLeaf - anchoPerfil / 2, 0);
+                leafGroup.add(travesanoSup);
+
+                const travesanoInf = crearCaja(wLeaf - anchoPerfil * 2, anchoPerfil * 1.6, grosorMarcoL, matTecaLisa);
+                travesanoInf.position.set(0, (anchoPerfil * 1.6) / 2, 0);
+                leafGroup.add(travesanoInf);
+
+                const wSlat = wLeaf - anchoPerfil * 2 + 0.4;
+                const slatsContainer = new THREE.Group();
+                slatsContainer.position.set(0, anchoPerfil * 1.6 + 2.0, 0);
+
+                for (let sl = 0; sl < numSlats; sl++) {
+                    const slat = crearCaja(wSlat, hSlat, 0.9, matTecaLisa);
+                    slat.rotation.x = anguloSlat;
+                    slat.position.set(0, sl * pasoSlat + hSlat / 2, 0);
+                    slatsContainer.add(slat);
+                }
+                leafGroup.add(slatsContainer);
+
+                const manijaLouver = crearCaja(1.8, 22.0, 2.4, matAceroOscuro);
+                const posXManija = isLeft
+                    ? (-wLeaf / 2 + anchoPerfil + 4.0)
+                    : (wLeaf / 2 - anchoPerfil - 4.0);
+                manijaLouver.position.set(posXManija, hLeaf * 0.48, -grosorMarcoL / 2 - 1.2);
+                leafGroup.add(manijaLouver);
+
+                return leafGroup;
+            }
+
             // Friso superior que permanece fijo.
             const frisoSuperior = crearCaja(wHuecoNichoSur + 2.0, altoMarcoSuperior, 2.5, matTecaLisa);
             frisoSuperior.position.set((v0[0] + v4[0]) / 2, 210.0 + altoMarcoSuperior / 2, zPlanoPuerta);
