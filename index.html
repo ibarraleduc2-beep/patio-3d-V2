@@ -161,7 +161,7 @@
         const hNichoTotal = 202; 
         const topH = CONFIG.barra.grosorCubierta, topD = CONFIG.barra.profundidadTotal, anguloPendiente = Math.atan(CONFIG.barra.pendienteCubierta / topD);
 
-        // V6.4 — optimización conservadora: se conserva íntegra la arquitectura de carga de V6/V6.1.
+        // V6.5 — ajuste de plano de celosía y accesorios de puerta: se conserva íntegra la arquitectura de carga de V6/V6.1.
         // Solo se optimiza lo que no altera geometría, interacción ni dependencias.
         const container = document.getElementById('canvas-container');
         // V6 AUDITORÍA / REFACTOR:
@@ -585,7 +585,7 @@
             // El panel conserva el eje longitudinal del Muro Oeste (local Z) y su espesor queda normal al muro (local X).
             // Se coloca sobre la cara interior del vano, sin girarlo fuera del plano del muro.
             mesh.rotation.y = Math.PI / 2;
-            mesh.position.set(grosorMuro / 2 + panelD / 2, distPH, distNH);
+            mesh.position.set(-grosorMuro / 2, distPH, distNH + panelW / 2);
             mesh.castShadow = true;
             mesh.receiveShadow = true;
             mesh.renderOrder = 11;
@@ -879,16 +879,16 @@
                 const rejW = Math.min(28, ancho * 0.18);
                 const rejH = 10;
                 const rejillaBase = crearCaja(rejW, rejH, 0.8, matAceroOscuro);
-                rejillaBase.position.set(ancho / 2 - rejW / 2 - 9, alto - 25, -1.7);
+                rejillaBase.position.set(ancho / 2 - rejW / 2 - 9, (alto - 25) - alto / 2, -1.7);
                 g.add(rejillaBase);
                 for (let i = 0; i < 5; i++) {
                     const lama = crearCaja(rejW - 3, 1.0, 1.0, matAcero);
-                    lama.position.set(ancho / 2 - rejW / 2 - 9, alto - 21.5 - i * 2.0, -2.3);
+                    lama.position.set(ancho / 2 - rejW / 2 - 9, (alto - 21.5 - i * 2.0) - alto / 2, -2.3);
                     g.add(lama);
                 }
 
                 const manija = crearCaja(2.4, 11, 1.8, matAceroOscuro);
-                manija.position.set(-ancho / 2 + 9, alto * 0.48, -2.2);
+                manija.position.set(-ancho / 2 + 9, (alto * 0.48) - alto / 2, -2.2);
                 g.add(manija);
                 return g;
             }
