@@ -91,7 +91,7 @@
 #diagnostic-panel .bad{color:#ff9b9b}
 </style>
 <div id="diagnostic-panel">
-  <strong>DIAGNÓSTICO V6.2 · PUERTA CORREDIZA · GEOMETRÍA DEFINITIVA</strong>
+  <strong>DIAGNÓSTICO V6.2 · PUERTA CORREDIZA · RIEL EMPOTRADO · IZQUIERDA</strong>
   <div id="diagnostic-status">HTML: OK
 WebGL: comprobando…
 Módulo Three.js: esperando…</div>
@@ -837,170 +837,141 @@ const lenFront = Math.hypot(v0[0] - v4[0], v0[1] - v4[1]);
             
             // Helper de la hoja corrediza de teca.
             // Debe existir antes de construir la puerta.
-            function crearHojaLouverTeca(wLeaf, hLeaf, isLeft) {
+            // Puerta lisa de teca con rejilla discreta de ventilación en una esquina.
+            function crearHojaLisaTecaVentilada(wLeaf, hLeaf) {
                 const leafGroup = new THREE.Group();
-                const grosorMarcoL = 3.5;
-                const anchoPerfil = 5.0;
-                const hSlat = 8.0;
-                const pasoSlat = 10.0;
-                const numSlats = Math.max(
-                    0, Math.floor((hLeaf - 12.0) / pasoSlat)
-                );
-                const anguloSlat = Math.PI * 0.21;
+                const grosor = 3.2;
+                const marco = 4.5;
 
-                const li = crearCaja(anchoPerfil, hLeaf, grosorMarcoL, matTecaLisa);
-                li.position.set(-wLeaf / 2 + anchoPerfil / 2, hLeaf / 2, 0);
-                leafGroup.add(li);
+                // Hoja lisa completa, mismo acabado/color de teca.
+                const hoja = crearCaja(wLeaf, hLeaf, grosor, matTecaLisa);
+                hoja.position.set(0, hLeaf / 2, 0);
+                leafGroup.add(hoja);
 
-                const ld = crearCaja(anchoPerfil, hLeaf, grosorMarcoL, matTecaLisa);
-                ld.position.set(wLeaf / 2 - anchoPerfil / 2, hLeaf / 2, 0);
-                leafGroup.add(ld);
+                // Marco perimetral muy discreto, integrado al mismo material.
+                const sup = crearCaja(wLeaf, marco, grosor + 0.15, matTecaLisa);
+                sup.position.set(0, hLeaf - marco / 2, -0.25);
+                leafGroup.add(sup);
+                const inf = crearCaja(wLeaf, marco, grosor + 0.15, matTecaLisa);
+                inf.position.set(0, marco / 2, -0.25);
+                leafGroup.add(inf);
+                const izq = crearCaja(marco, hLeaf, grosor + 0.15, matTecaLisa);
+                izq.position.set(-wLeaf / 2 + marco / 2, hLeaf / 2, -0.25);
+                leafGroup.add(izq);
+                const der = crearCaja(marco, hLeaf, grosor + 0.15, matTecaLisa);
+                der.position.set(wLeaf / 2 - marco / 2, hLeaf / 2, -0.25);
+                leafGroup.add(der);
 
-                const ts = crearCaja(
-                    wLeaf - anchoPerfil * 2,
-                    anchoPerfil,
-                    grosorMarcoL,
-                    matTecaLisa
-                );
-                ts.position.set(0, hLeaf - anchoPerfil / 2, 0);
-                leafGroup.add(ts);
+                // Rejilla de ventilación: esquina superior izquierda.
+                // Aberturas oscuras simuladas por lamas finas y marco de teca.
+                const ventW = Math.min(32, wLeaf * 0.20);
+                const ventH = 18;
+                const ventX = -wLeaf / 2 + marco + ventW / 2 + 7;
+                const ventY = hLeaf - marco - ventH / 2 - 9;
 
-                const ti = crearCaja(
-                    wLeaf - anchoPerfil * 2,
-                    anchoPerfil * 1.6,
-                    grosorMarcoL,
-                    matTecaLisa
-                );
-                ti.position.set(0, anchoPerfil * 0.8, 0);
-                leafGroup.add(ti);
+                const ventFondo = crearCaja(ventW, ventH, 0.8, matAceroOscuro);
+                ventFondo.position.set(ventX, ventY, -grosor / 2 - 0.55);
+                leafGroup.add(ventFondo);
 
-                const wSlat = wLeaf - anchoPerfil * 2 + 0.4;
-                const slats = new THREE.Group();
-                slats.position.set(0, anchoPerfil * 1.6 + 2, 0);
+                const ventMarcoSup = crearCaja(ventW + 2, 1.6, 1.2, matTecaLisa);
+                ventMarcoSup.position.set(ventX, ventY + ventH / 2, -grosor / 2 - 1.0);
+                leafGroup.add(ventMarcoSup);
+                const ventMarcoInf = crearCaja(ventW + 2, 1.6, 1.2, matTecaLisa);
+                ventMarcoInf.position.set(ventX, ventY - ventH / 2, -grosor / 2 - 1.0);
+                leafGroup.add(ventMarcoInf);
+                const ventMarcoIzq = crearCaja(1.6, ventH, 1.2, matTecaLisa);
+                ventMarcoIzq.position.set(ventX - ventW / 2, ventY, -grosor / 2 - 1.0);
+                leafGroup.add(ventMarcoIzq);
+                const ventMarcoDer = crearCaja(1.6, ventH, 1.2, matTecaLisa);
+                ventMarcoDer.position.set(ventX + ventW / 2, ventY, -grosor / 2 - 1.0);
+                leafGroup.add(ventMarcoDer);
 
-                for (let sl = 0; sl < numSlats; sl++) {
-                    const slat = crearCaja(wSlat, hSlat, 0.9, matTecaLisa);
-                    slat.rotation.x = anguloSlat;
-                    slat.position.set(0, sl * pasoSlat + hSlat / 2, 0);
-                    slats.add(slat);
+                const separacion = 4.0;
+                for (let i = -2; i <= 2; i++) {
+                    const lama = crearCaja(ventW - 3, 1.5, 1.0, matTecaLisa);
+                    lama.position.set(ventX, ventY + i * separacion, -grosor / 2 - 1.05);
+                    leafGroup.add(lama);
                 }
-                leafGroup.add(slats);
 
+                // Manija vertical discreta en el borde derecho.
                 const manija = crearCaja(1.8, 22, 2.4, matAceroOscuro);
-                manija.position.set(
-                    isLeft
-                        ? (-wLeaf / 2 + anchoPerfil + 4)
-                        : (wLeaf / 2 - anchoPerfil - 4),
-                    hLeaf * 0.48,
-                    -grosorMarcoL / 2 - 1.2
-                );
+                manija.position.set(wLeaf / 2 - marco - 4, hLeaf * 0.48, -grosor / 2 - 1.2);
                 leafGroup.add(manija);
 
                 return leafGroup;
             }
 
 // =========================================================================
-            // V6.2 — PUERTA CORREDIZA · GEOMETRÍA DEFINITIVA
-            // Frente completo del cobertizo + apertura hacia la IZQUIERDA.
-            //
-            // IMPORTANTE:
-            // +X corresponde al lado IZQUIERDO en la vista frontal del cobertizo.
-            // Por eso la hoja se desplaza hacia +X al abrir.
-            // El riel queda incrustado en la losa/techo del cobertizo:
-            // no sobresale hacia el exterior.
             // =========================================================================
-
+            // V6.2 — PUERTA CORREDIZA · RIEL EMPOTRADO + RECORRIDO A LA IZQUIERDA
+            // =========================================================================
             const hPuertaCorrediza = 218.0;
 
-            // ANCHO = TODO EL FRENTE REAL DEL COBERTIZO.
-            // No se calcula contra la torre de lavado.
+            // Todo el frente del cobertizo.
             const xFrenteIzq = v4[0];
             const xFrenteDer = v0[0];
             const wPuertaCorrediza = xFrenteDer - xFrenteIzq;
             const xCentroPuerta = (xFrenteIzq + xFrenteDer) / 2;
 
-            // Plano frontal del cobertizo.
-            const zPlanoPuerta = 400.8;
+            // La puerta y el riel se llevan hacia el FRENTE para que,
+            // durante el recorrido hacia la izquierda, pasen por delante
+            // del muro lateral y no choquen con él.
+            const zPlanoPuerta = 391.5;
 
             const puertaCorredizaGroup = new THREE.Group();
-            puertaCorredizaGroup.position.set(
-                xCentroPuerta,
-                0,
-                zPlanoPuerta
-            );
+            puertaCorredizaGroup.position.set(xCentroPuerta, 0, zPlanoPuerta);
 
-            // Hoja única de teca.
-            const hojaCorrediza = crearHojaLouverTeca(
+            // Hoja lisa, misma teca/color del proyecto, con ventilación en esquina.
+            const hojaCorrediza = crearHojaLisaTecaVentilada(
                 wPuertaCorrediza,
-                hPuertaCorrediza,
-                true
+                hPuertaCorrediza
             );
             puertaCorredizaGroup.add(hojaCorrediza);
 
-            // RIEL INCRUSTADO EN EL TECHO.
-            // El techo comienza aproximadamente en getRoofBottomAtZ(z).
-            // Dejamos solamente 0.20 cm del riel visible por debajo,
-            // como un riel empotrado/recesado, sin tramo exterior.
+            // RIEL SUPERIOR TOTALMENTE DENTRO DEL TECHO.
+            // Debe cubrir tanto la posición cerrada como TODO el recorrido
+            // de apertura hacia la izquierda: longitud ≈ 2 veces la hoja.
             const roofBottom = getRoofBottomAtZ(zPlanoPuerta);
             const hRiel = 1.8;
-            const riel = crearCaja(
-                wPuertaCorrediza - 2.4,
-                hRiel,
-                1.8,
-                matAceroOscuro
-            );
+            const largoRiel = (wPuertaCorrediza * 2.0) + 4.0;
+            const riel = crearCaja(largoRiel, hRiel, 1.8, matAceroOscuro);
             riel.position.set(
-                0,
-                roofBottom + (hRiel / 2) - 0.20,
+                -wPuertaCorrediza / 2,
+                roofBottom + (hRiel / 2) - 1.35,
                 0
             );
             puertaCorredizaGroup.add(riel);
 
-            // Carros de la hoja, alineados debajo del riel.
-            const yCarros = roofBottom - 0.45;
-
-            const carroIzq = crearCaja(4.0, 1.6, 3.8, matAceroOscuro);
-            carroIzq.position.set(
-                -wPuertaCorrediza * 0.30,
-                yCarros,
-                0
-            );
+            // Carros también retranqueados dentro del espesor del techo.
+            const yCarros = roofBottom - 0.85;
+            const carroIzq = crearCaja(4.0, 1.4, 3.8, matAceroOscuro);
+            carroIzq.position.set(-wPuertaCorrediza * 0.30, yCarros, 0);
             puertaCorredizaGroup.add(carroIzq);
 
-            const carroDer = crearCaja(4.0, 1.6, 3.8, matAceroOscuro);
-            carroDer.position.set(
-                wPuertaCorrediza * 0.30,
-                yCarros,
-                0
-            );
+            const carroDer = crearCaja(4.0, 1.4, 3.8, matAceroOscuro);
+            carroDer.position.set(wPuertaCorrediza * 0.30, yCarros, 0);
             puertaCorredizaGroup.add(carroDer);
 
-            // Interacción.
             const hitboxPuertaCorrediza = crearCaja(
                 wPuertaCorrediza,
                 hPuertaCorrediza,
                 4.0,
                 new THREE.MeshBasicMaterial({ visible: false })
             );
-            hitboxPuertaCorrediza.position.set(
-                0,
-                hPuertaCorrediza / 2,
-                0
-            );
+            hitboxPuertaCorrediza.position.set(0, hPuertaCorrediza / 2, 0);
             puertaCorredizaGroup.add(hitboxPuertaCorrediza);
 
             nichoSurGroup.add(puertaCorredizaGroup);
 
-            // APERTURA HACIA LA IZQUIERDA.
-            // Se desplaza completamente fuera del frente y queda
-            // por delante del muro lateral/falso de ese lado.
-            // El +4 cm evita que quede apenas rozando el borde.
+            // IZQUIERDA = desplazamiento NEGATIVO en X.
+            // La hoja termina completamente fuera del vano, hacia el lado izquierdo,
+            // y queda delante del muro durante todo el recorrido.
             hitboxPuertaCorrediza.userData = {
                 tipo: 'puerta_corrediza',
                 grupo: puertaCorredizaGroup,
                 abierto: false,
                 posX_cerrado: xCentroPuerta,
-                posX_abierto: xCentroPuerta + wPuertaCorrediza + 4.0
+                posX_abierto: xCentroPuerta - wPuertaCorrediza - 4.0
             };
 
             objetosInteractivos.push(hitboxPuertaCorrediza);
