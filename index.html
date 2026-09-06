@@ -91,7 +91,7 @@
 #diagnostic-panel .bad{color:#ff9b9b}
 </style>
 <div id="diagnostic-panel">
-  <strong>DIAGNÓSTICO V6.2 · PUERTA CORREDIZA SIMPLE · FIX</strong>
+  <strong>DIAGNÓSTICO V6.2 · PUERTA CORREDIZA · GEOMETRÍA DEFINITIVA</strong>
   <div id="diagnostic-status">HTML: OK
 WebGL: comprobando…
 Módulo Three.js: esperando…</div>
@@ -899,44 +899,37 @@ const lenFront = Math.hypot(v0[0] - v4[0], v0[1] - v4[1]);
                 return leafGroup;
             }
 
-// V6.2 — PUERTA CORREDIZA SIMPLE · PRUEBA DE GEOMETRÍA
-            // =========================================================================
-            // Primera etapa: solamente una puerta corrediza.
-            // La puerta ocupa el vano izquierdo de la lavandería y la torre
-            // de lavado permanece visible a la derecha.
+// =========================================================================
+            // V6.2 — PUERTA CORREDIZA · GEOMETRÍA DEFINITIVA
+            // Frente completo del cobertizo + apertura hacia la IZQUIERDA.
             //
-            // El riel es corto y queda pegado al muro/techo del nicho:
-            // NO existe ningún tramo de riel que sobresalga hacia afuera.
-            // No se crea todavía muro de bolsillo.
+            // IMPORTANTE:
+            // +X corresponde al lado IZQUIERDO en la vista frontal del cobertizo.
+            // Por eso la hoja se desplaza hacia +X al abrir.
+            // El riel queda incrustado en la losa/techo del cobertizo:
+            // no sobresale hacia el exterior.
             // =========================================================================
 
-            const hPuertaCorrediza = 209.0;
+            const hPuertaCorrediza = 218.0;
 
-            // La torre está a la DERECHA. La puerta ocupa únicamente el
-            // espacio libre a su IZQUIERDA.
-            const xIzqVano = v4[0];
-            const xIzqTorre = posX_Torre - washerW / 2;
-            const margenPuerta = 2.0;
-            const wPuertaCorrediza = Math.max(
-                80.0,
-                xIzqTorre - xIzqVano - margenPuerta
-            );
+            // ANCHO = TODO EL FRENTE REAL DEL COBERTIZO.
+            // No se calcula contra la torre de lavado.
+            const xFrenteIzq = v4[0];
+            const xFrenteDer = v0[0];
+            const wPuertaCorrediza = xFrenteDer - xFrenteIzq;
+            const xCentroPuerta = (xFrenteIzq + xFrenteDer) / 2;
 
-            // Plano frontal del muro existente.
+            // Plano frontal del cobertizo.
             const zPlanoPuerta = 400.8;
 
             const puertaCorredizaGroup = new THREE.Group();
-
-            const xCentroPuerta =
-                xIzqVano + margenPuerta + wPuertaCorrediza / 2;
-
             puertaCorredizaGroup.position.set(
                 xCentroPuerta,
                 0,
                 zPlanoPuerta
             );
 
-            // Hoja única de teca, horizontal, igual al diseño de referencia.
+            // Hoja única de teca.
             const hojaCorrediza = crearHojaLouverTeca(
                 wPuertaCorrediza,
                 hPuertaCorrediza,
@@ -944,39 +937,40 @@ const lenFront = Math.hypot(v0[0] - v4[0], v0[1] - v4[1]);
             );
             puertaCorredizaGroup.add(hojaCorrediza);
 
-            // RIEL CORTO: exactamente sobre la hoja.
-            // No se prolonga hacia el exterior ni hacia el lado contrario.
-            const largoRiel = wPuertaCorrediza + 2.0;
+            // RIEL INCRUSTADO EN EL TECHO.
+            // El techo comienza aproximadamente en getRoofBottomAtZ(z).
+            // Dejamos solamente 0.20 cm del riel visible por debajo,
+            // como un riel empotrado/recesado, sin tramo exterior.
+            const roofBottom = getRoofBottomAtZ(zPlanoPuerta);
+            const hRiel = 1.8;
             const riel = crearCaja(
-                largoRiel,
-                1.8,
+                wPuertaCorrediza - 2.4,
+                hRiel,
                 1.8,
                 matAceroOscuro
             );
             riel.position.set(
                 0,
-                hPuertaCorrediza + 2.5,
+                roofBottom + (hRiel / 2) - 0.20,
                 0
             );
             puertaCorredizaGroup.add(riel);
 
-            // Carros dentro del ancho de la hoja.
-            const carroIzq = crearCaja(
-                4.0, 1.6, 3.8, matAceroOscuro
-            );
+            // Carros de la hoja, alineados debajo del riel.
+            const yCarros = roofBottom - 0.45;
+
+            const carroIzq = crearCaja(4.0, 1.6, 3.8, matAceroOscuro);
             carroIzq.position.set(
                 -wPuertaCorrediza * 0.30,
-                hPuertaCorrediza + 1.6,
+                yCarros,
                 0
             );
             puertaCorredizaGroup.add(carroIzq);
 
-            const carroDer = crearCaja(
-                4.0, 1.6, 3.8, matAceroOscuro
-            );
+            const carroDer = crearCaja(4.0, 1.6, 3.8, matAceroOscuro);
             carroDer.position.set(
                 wPuertaCorrediza * 0.30,
-                hPuertaCorrediza + 1.6,
+                yCarros,
                 0
             );
             puertaCorredizaGroup.add(carroDer);
@@ -997,17 +991,16 @@ const lenFront = Math.hypot(v0[0] - v4[0], v0[1] - v4[1]);
 
             nichoSurGroup.add(puertaCorredizaGroup);
 
-            // Abre hacia la IZQUIERDA. El recorrido libera el vano sin
-            // agregar ningún riel exterior.
+            // APERTURA HACIA LA IZQUIERDA.
+            // Se desplaza completamente fuera del frente y queda
+            // por delante del muro lateral/falso de ese lado.
+            // El +4 cm evita que quede apenas rozando el borde.
             hitboxPuertaCorrediza.userData = {
                 tipo: 'puerta_corrediza',
                 grupo: puertaCorredizaGroup,
                 abierto: false,
                 posX_cerrado: xCentroPuerta,
-                posX_abierto:
-                    xIzqVano -
-                    wPuertaCorrediza / 2 -
-                    4.0
+                posX_abierto: xCentroPuerta + wPuertaCorrediza + 4.0
             };
 
             objetosInteractivos.push(hitboxPuertaCorrediza);
