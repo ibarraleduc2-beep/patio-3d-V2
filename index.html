@@ -91,7 +91,7 @@
 #diagnostic-panel .bad{color:#ff9b9b}
 </style>
 <div id="diagnostic-panel">
-  <strong>DIAGNÓSTICO V6.2 · MURO FALSO</strong>
+  <strong>DIAGNÓSTICO V6.2 · MURO DE BOLSILLO</strong>
   <div id="diagnostic-status">HTML: OK
 WebGL: comprobando…
 Módulo Three.js: esperando…</div>
@@ -834,21 +834,30 @@ const lenFront = Math.hypot(v0[0] - v4[0], v0[1] - v4[1]);
             nichoSurGroup.add(torreGroup);
 
             // =========================================================================
-            // V6.2 — PUERTA CORREDIZA ÚNICA DE PVC TECA, DETRÁS DEL MURO FALSO
-            // Desliza hacia la derecha y, al abrir, queda detrás del muro falso.
+            // V6.2 — PUERTA CORREDIZA EN MURO DE BOLSILLO REAL
+            // El muro falso existente permanece donde está.
+            // Se añade un SEGUNDO muro falso independiente al frente.
+            // La hoja queda entre ambos y, al abrir hacia la IZQUIERDA, entra
+            // completamente detrás del nuevo muro, quedando 100% oculta.
             // =========================================================================
             const wHuecoNichoSur = v0[0] - v4[0];
             const altoMarcoSuperior = 11.0;
             const hPuertaCorrediza = 209.0;
             const wPuertaCorrediza = wHuecoNichoSur - 2.0;
-            const zPlanoPuerta = 399.0; // Puerta detrás del muro falso; frente del muro falso en Z≈395.5
 
-            // V6.2 FIX: la puerta corrediza seguía llamando a esta función,
-            // pero la definición había quedado fuera al reemplazar las puertas abatibles.
+            // La hoja se conserva dentro del espacio entre ambos muros.
+            const zMuroExistente = 400.0;
+            const espesorMuroFalso2 = 4.5;
+            const camaraPuerta = 6.5;
+            const zMuroFalso2 = zMuroExistente - camaraPuerta - espesorMuroFalso2;
+            const zPlanoPuerta = zMuroFalso2 + espesorMuroFalso2 + camaraPuerta / 2;
+
+            // Función de la hoja de louver de teca.
             function crearHojaLouverTeca(wLeaf, hLeaf, isLeft) {
                 const leafGroup = new THREE.Group();
                 const grosorMarcoL = 3.5, anchoPerfil = 5.0;
-                const hSlat = 8.0, pasoSlat = 10.0, numSlats = Math.max(0, Math.floor((hLeaf - 12.0) / pasoSlat));
+                const hSlat = 8.0, pasoSlat = 10.0;
+                const numSlats = Math.max(0, Math.floor((hLeaf - 12.0) / pasoSlat));
                 const anguloSlat = Math.PI * 0.21;
 
                 const largueroIzq = crearCaja(anchoPerfil, hLeaf, grosorMarcoL, matTecaLisa);
@@ -888,53 +897,150 @@ const lenFront = Math.hypot(v0[0] - v4[0], v0[1] - v4[1]);
 
                 return leafGroup;
             }
-            // Muro falso frontal de estuco mineral, adelantado 4.5 cm hacia el frente.
-            // La cámara posterior oculta el riel y el cabezal de la puerta.
-            const profundidadMuroFalso = 4.5;
-            const anchoMuroFalso = wPuertaCorrediza + 210.0;
-            const muroFalsoSuperior = crearCaja(anchoMuroFalso, altoMarcoSuperior + 1.5, profundidadMuroFalso, matMuro);
-            muroFalsoSuperior.name = 'Muro_Falso_Lavanderia_Riel_Oculto';
-            // Frente del muro falso en Z=395.5; puerta y riel quedan detrás.
-            muroFalsoSuperior.position.set((v0[0] + v4[0]) / 2, 210.75 + (altoMarcoSuperior + 1.5) / 2, 397.75);
-            nichoSurGroup.add(muroFalsoSuperior);
 
-            // Hoja corrediza única.
+            // -----------------------------------------------------------------
+            // SEGUNDO MURO FALSO: MURO DE BOLSILLO
+            //
+            // El frente visible se construye como:
+            //   1) dintel continuo de estuco;
+            //   2) montante derecho;
+            //   3) "caja" de bolsillo al lado izquierdo.
+            //
+            // La caja izquierda es la que recibe la hoja completa al abrir.
+            // La abertura de la puerta permanece libre cuando está cerrada.
+            // -----------------------------------------------------------------
+            const altoDintel = altoMarcoSuperior + 4.5;
+            const zFrenteMuro2 = zMuroFalso2;
+
+            // Dintel de estuco mineral con volado integrado.
+            const dintelBolsa = crearCaja(
+                wHuecoNichoSur + wPuertaCorrediza + 12.0,
+                altoDintel,
+                espesorMuroFalso2,
+                matMuro
+            );
+            dintelBolsa.position.set(
+                (v0[0] + v4[0]) / 2 - wPuertaCorrediza / 2,
+                hPuertaCorrediza + altoDintel / 2,
+                zFrenteMuro2
+            );
+            nichoSurGroup.add(dintelBolsa);
+
+            // Montante derecho: define el borde limpio del vano visible.
+            const montanteDerecho = crearCaja(
+                espesorMuroFalso2,
+                hPuertaCorrediza + altoDintel,
+                espesorMuroFalso2,
+                matMuro
+            );
+            montanteDerecho.position.set(
+                v0[0] - espesorMuroFalso2 / 2,
+                (hPuertaCorrediza + altoDintel) / 2,
+                zFrenteMuro2
+            );
+            nichoSurGroup.add(montanteDerecho);
+
+            // Muro/caja del bolsillo a la izquierda.
+            // Se extiende lo suficiente para recibir toda la hoja.
+            const anchoBolsillo = wPuertaCorrediza + espesorMuroFalso2;
+            const xCentroBolsillo = v4[0] + anchoBolsillo / 2;
+
+            const pielBolsillo = crearCaja(
+                anchoBolsillo,
+                hPuertaCorrediza + altoDintel,
+                espesorMuroFalso2,
+                matMuro
+            );
+            pielBolsillo.position.set(
+                xCentroBolsillo,
+                (hPuertaCorrediza + altoDintel) / 2,
+                zFrenteMuro2
+            );
+            nichoSurGroup.add(pielBolsillo);
+
+            // Costado del bolsillo para que sea una cámara real y no solo
+            // una lámina frontal.
+            const costadoBolsillo = crearCaja(
+                anchoBolsillo,
+                hPuertaCorrediza + altoDintel,
+                2.0,
+                matMuro
+            );
+            costadoBolsillo.position.set(
+                xCentroBolsillo,
+                (hPuertaCorrediza + altoDintel) / 2,
+                zMuroExistente - 1.0
+            );
+            nichoSurGroup.add(costadoBolsillo);
+
+            // -----------------------------------------------------------------
+            // PUERTA: CERRADA EN EL VANO / ABIERTA DENTRO DEL BOLSILLO
+            // -----------------------------------------------------------------
             const puertaCorredizaGroup = new THREE.Group();
-            puertaCorredizaGroup.position.set((v0[0] + v4[0]) / 2, 0, zPlanoPuerta);
+            const xCerrado = (v0[0] + v4[0]) / 2;
 
-            const hojaCorrediza = crearHojaLouverTeca(wPuertaCorrediza, hPuertaCorrediza, true);
+            puertaCorredizaGroup.position.set(
+                xCerrado,
+                0,
+                zPlanoPuerta
+            );
+
+            const hojaCorrediza = crearHojaLouverTeca(
+                wPuertaCorrediza,
+                hPuertaCorrediza,
+                true
+            );
             hojaCorrediza.position.set(0, 0, 0);
             puertaCorredizaGroup.add(hojaCorrediza);
 
-            // Riel superior y dos carros visibles discretamente.
+            // Riel completamente dentro de la cámara.
             const largoRiel = wPuertaCorrediza + 190.0;
-            const rielCorredizo = crearCaja(largoRiel, 2.2, 2.4, matAceroOscuro);
-            rielCorredizo.position.set(-92.0, 215.2, -1.0);
+            const rielCorredizo = crearCaja(
+                largoRiel,
+                2.2,
+                2.4,
+                matAceroOscuro
+            );
+            rielCorredizo.position.set(-92.0, 215.2, 0);
             puertaCorredizaGroup.add(rielCorredizo);
 
             const carroIzq = crearCaja(5.0, 2.0, 5.0, matAceroOscuro);
-            carroIzq.position.set(-wPuertaCorrediza * 0.31, 212.8, -1.0);
+            carroIzq.position.set(-wPuertaCorrediza * 0.31, 212.8, 0);
             puertaCorredizaGroup.add(carroIzq);
+
             const carroDer = crearCaja(5.0, 2.0, 5.0, matAceroOscuro);
-            carroDer.position.set(wPuertaCorrediza * 0.31, 212.8, -1.0);
+            carroDer.position.set(wPuertaCorrediza * 0.31, 212.8, 0);
             puertaCorredizaGroup.add(carroDer);
 
-            const hitboxPuertaCorrediza = crearCaja(wPuertaCorrediza, hPuertaCorrediza, 4.5, new THREE.MeshBasicMaterial({ visible: false }));
-            hitboxPuertaCorrediza.position.set(0, hPuertaCorrediza / 2, 0);
+            const hitboxPuertaCorrediza = crearCaja(
+                wPuertaCorrediza,
+                hPuertaCorrediza,
+                4.5,
+                new THREE.MeshBasicMaterial({ visible: false })
+            );
+            hitboxPuertaCorrediza.position.set(
+                0,
+                hPuertaCorrediza / 2,
+                0
+            );
             puertaCorredizaGroup.add(hitboxPuertaCorrediza);
             nichoSurGroup.add(puertaCorredizaGroup);
 
+            // Apertura hacia la IZQUIERDA.
+            // La hoja se desplaza una hoja completa + 4.5 cm para quedar
+            // completamente detrás de la piel del muro falso.
             hitboxPuertaCorrediza.userData = {
-                tipo: 'puerta_corrediza',
+                tipo: 'puerta_corrediza_bolsillo',
                 grupo: puertaCorredizaGroup,
                 abierto: false,
-                posX_cerrado: (v0[0] + v4[0]) / 2,
-                // Abre hacia el lado contrario: se desplaza completamente hacia la derecha.
-                posX_abierto: (v0[0] + v4[0]) / 2 + wPuertaCorrediza + 4.0
+                posX_cerrado: xCerrado,
+                posX_abierto: xCerrado - wPuertaCorrediza - 4.5
             };
+
             objetosInteractivos.push(hitboxPuertaCorrediza);
 
-            grupoMuroSur.add(nichoSurGroup);
+            // El techo del nicho conserva el volado frontal de 20 cm.
+            
         }
 
         construirCobertizoSur();
