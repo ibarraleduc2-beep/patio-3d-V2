@@ -91,7 +91,7 @@
 #diagnostic-panel .bad{color:#ff9b9b}
 </style>
 <div id="diagnostic-panel">
-  <strong>DIAGNÓSTICO V6.2 · PUERTA CORREDIZA SIMPLE</strong>
+  <strong>DIAGNÓSTICO V6.2 · PUERTA CORREDIZA SIMPLE · FIX</strong>
   <div id="diagnostic-status">HTML: OK
 WebGL: comprobando…
 Módulo Three.js: esperando…</div>
@@ -834,7 +834,72 @@ const lenFront = Math.hypot(v0[0] - v4[0], v0[1] - v4[1]);
             nichoSurGroup.add(torreGroup);
 
             // =========================================================================
-            // V6.2 — PUERTA CORREDIZA SIMPLE · PRUEBA DE GEOMETRÍA
+            
+            // Helper de la hoja corrediza de teca.
+            // Debe existir antes de construir la puerta.
+            function crearHojaLouverTeca(wLeaf, hLeaf, isLeft) {
+                const leafGroup = new THREE.Group();
+                const grosorMarcoL = 3.5;
+                const anchoPerfil = 5.0;
+                const hSlat = 8.0;
+                const pasoSlat = 10.0;
+                const numSlats = Math.max(
+                    0, Math.floor((hLeaf - 12.0) / pasoSlat)
+                );
+                const anguloSlat = Math.PI * 0.21;
+
+                const li = crearCaja(anchoPerfil, hLeaf, grosorMarcoL, matTecaLisa);
+                li.position.set(-wLeaf / 2 + anchoPerfil / 2, hLeaf / 2, 0);
+                leafGroup.add(li);
+
+                const ld = crearCaja(anchoPerfil, hLeaf, grosorMarcoL, matTecaLisa);
+                ld.position.set(wLeaf / 2 - anchoPerfil / 2, hLeaf / 2, 0);
+                leafGroup.add(ld);
+
+                const ts = crearCaja(
+                    wLeaf - anchoPerfil * 2,
+                    anchoPerfil,
+                    grosorMarcoL,
+                    matTecaLisa
+                );
+                ts.position.set(0, hLeaf - anchoPerfil / 2, 0);
+                leafGroup.add(ts);
+
+                const ti = crearCaja(
+                    wLeaf - anchoPerfil * 2,
+                    anchoPerfil * 1.6,
+                    grosorMarcoL,
+                    matTecaLisa
+                );
+                ti.position.set(0, anchoPerfil * 0.8, 0);
+                leafGroup.add(ti);
+
+                const wSlat = wLeaf - anchoPerfil * 2 + 0.4;
+                const slats = new THREE.Group();
+                slats.position.set(0, anchoPerfil * 1.6 + 2, 0);
+
+                for (let sl = 0; sl < numSlats; sl++) {
+                    const slat = crearCaja(wSlat, hSlat, 0.9, matTecaLisa);
+                    slat.rotation.x = anguloSlat;
+                    slat.position.set(0, sl * pasoSlat + hSlat / 2, 0);
+                    slats.add(slat);
+                }
+                leafGroup.add(slats);
+
+                const manija = crearCaja(1.8, 22, 2.4, matAceroOscuro);
+                manija.position.set(
+                    isLeft
+                        ? (-wLeaf / 2 + anchoPerfil + 4)
+                        : (wLeaf / 2 - anchoPerfil - 4),
+                    hLeaf * 0.48,
+                    -grosorMarcoL / 2 - 1.2
+                );
+                leafGroup.add(manija);
+
+                return leafGroup;
+            }
+
+// V6.2 — PUERTA CORREDIZA SIMPLE · PRUEBA DE GEOMETRÍA
             // =========================================================================
             // Primera etapa: solamente una puerta corrediza.
             // La puerta ocupa el vano izquierdo de la lavandería y la torre
