@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-    <title>Visualizador 3D Interactivo - Patio Mineral Orgánico V6.2</title>
+    <title>Visualizador 3D Interactivo - Patio Mineral Orgánico V6.3 · Sistema de Coordenadas</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; overflow: hidden; background-color: #5c7e9c; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; touch-action: none; user-select: none; }
@@ -77,67 +77,6 @@
 </head>
 <body>
 
-<style>
-#diagnostic-panel{
-    position:fixed;left:10px;top:10px;z-index:99999;
-    max-width:min(92vw,430px);padding:12px 14px;
-    background:rgba(10,18,35,.94);color:#fff;border:1px solid rgba(255,255,255,.25);
-    border-radius:12px;font:12px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-    box-shadow:0 8px 30px rgba(0,0,0,.35);display:block;
-}
-#diagnostic-panel strong{font-size:14px}
-#diagnostic-status{margin-top:7px;white-space:pre-wrap;word-break:break-word}
-#diagnostic-panel .ok{color:#9be7a8}
-#diagnostic-panel .bad{color:#ff9b9b}
-</style>
-<div id="diagnostic-panel">
-  <strong>DIAGNÓSTICO V6.2 · CELOSÍA ORGÁNICA DE ESTUCO · ORIENTACIÓN CORREGIDA</strong>
-  <div id="diagnostic-status">HTML: OK
-WebGL: comprobando…
-Módulo Three.js: esperando…</div>
-</div>
-<script>
-(function(){
-  const box = document.getElementById('diagnostic-status');
-  const state = { html:true, webgl:false, module:false, scene:false };
-  function render(extra){
-    box.textContent =
-      'HTML: OK\\n' +
-      'WebGL: ' + (state.webgl ? 'OK' : 'NO DISPONIBLE') + '\\n' +
-      'Módulo Three.js: ' + (state.module ? 'OK' : 'esperando…') +
-      (state.scene ? '\\nEscena/render: OK' : '') +
-      (extra ? '\\n\\nERROR / EVENTO:\\n' + extra : '');
-  }
-  window.__diag = {
-    moduleOK(){ state.module=true; render(); },
-    sceneOK(){ state.scene=true; render(); },
-    error(msg){ render(String(msg)); }
-  };
-  try{
-    const c=document.createElement('canvas');
-    const gl=c.getContext('webgl2') || c.getContext('webgl') || c.getContext('experimental-webgl');
-    state.webgl=!!gl;
-  }catch(e){
-    state.webgl=false;
-  }
-  render();
-  window.addEventListener('error', function(e){
-    const msg = e.message || (e.error && e.error.message) || 'Error JavaScript desconocido';
-    window.__diag.error(msg);
-  });
-  window.addEventListener('unhandledrejection', function(e){
-    const r=e.reason;
-    window.__diag.error(r && r.message ? r.message : String(r));
-  });
-  setTimeout(function(){
-    if(!state.module){
-      window.__diag.error('El módulo no inició después de 8 segundos. Posible fallo al cargar Three.js/CDN o módulos ES.');
-    }
-  },8000);
-})();
-</script>
-
-
     <div id="canvas-container"></div>
     <div id="instrucciones">Toca la puerta corrediza, asador, cajones y persiana.<br>Arrastra 360° para rotar | Pellizca / Rueda para zoom</div>
 
@@ -175,8 +114,6 @@ Módulo Three.js: esperando…</div>
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
         import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
         import TWEEN from '@tweenjs/tween.js';
-        if (window.__diag) window.__diag.moduleOK();
-
 
         // CONFIGURACIÓN GEOMÉTRICA EXACTA
         const CONFIG = {
@@ -246,14 +183,12 @@ Módulo Three.js: esperando…</div>
         renderer.setSize(window.innerWidth, window.innerHeight);
         const pixelRatioMax = window.innerWidth <= 900 ? 1.75 : 2.0;
         renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, pixelRatioMax));
-        if (window.__diag) window.__diag.sceneOK();
-
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         renderer.toneMapping = THREE.ACESFilmicToneMapping;
         renderer.outputColorSpace = THREE.SRGBColorSpace;
         renderer.sortObjects = true;
-        renderer.toneMappingExposure = 0.92;
+        renderer.toneMappingExposure = 1.08;
         renderer.physicallyCorrectLights = true;
         container.appendChild(renderer.domElement);
 
@@ -271,11 +206,11 @@ Módulo Three.js: esperando…</div>
         controls.minPolarAngle = 0.01; controls.maxPolarAngle = Math.PI / 2 - 0.01;   
         controls.minDistance = 50; controls.maxDistance = 3500;               
 
-        const ambientLight = new THREE.AmbientLight(0xf2e6d5, 0.32); scene.add(ambientLight);
-        const hemiLight = new THREE.HemisphereLight(0xfff3df, 0x35404b, 0.46); scene.add(hemiLight);
-        const dirLight = new THREE.DirectionalLight(0xffe6c7, 1.85); dirLight.position.set(-260, 520, 360); dirLight.castShadow = true; dirLight.shadow.mapSize.width = 2048; dirLight.shadow.mapSize.height = 2048; dirLight.shadow.camera.near = 1; dirLight.shadow.camera.far = 1900; dirLight.shadow.bias = -0.00008; dirLight.shadow.radius = 3; scene.add(dirLight);
+        const ambientLight = new THREE.AmbientLight(0xf2e6d5, 0.38); scene.add(ambientLight);
+        const hemiLight = new THREE.HemisphereLight(0xfff3df, 0x35404b, 0.52); scene.add(hemiLight);
+        const dirLight = new THREE.DirectionalLight(0xffe6c7, 2.15); dirLight.position.set(-260, 520, 360); dirLight.castShadow = true; dirLight.shadow.mapSize.width = 2048; dirLight.shadow.mapSize.height = 2048; dirLight.shadow.camera.near = 1; dirLight.shadow.camera.far = 1900; dirLight.shadow.bias = -0.00008; dirLight.shadow.radius = 3; scene.add(dirLight);
         const fillLight = new THREE.DirectionalLight(0xbfc9d2, 0.18); fillLight.position.set(320, 280, -280); scene.add(fillLight);
-        const frontFill = new THREE.DirectionalLight(0xfff2dc, 0.30); frontFill.position.set(120, 220, 520); scene.add(frontFill);
+        const frontFill = new THREE.DirectionalLight(0xfff2dc, 0.42); frontFill.position.set(120, 220, 520); scene.add(frontFill);
 
         // =========================================================================
         // GENERADORES PROCEDIMENTALES DE TEXTURAS EN ALTA DEFINICIÓN
@@ -507,6 +442,29 @@ Módulo Three.js: esperando…</div>
 
         const v0_Suelo = [xP1, 400.0]; 
         const v4_Suelo = [400.0 * (3 / 412), 400.0]; // (2.91, 400.0)
+        const EJES = Object.freeze({
+            // Sistema único del modelo: X = Oeste→Este, Z = Norte→Sur, Y = vertical.
+            OESTE_X: 0,
+            ESTE_X: CONFIG.muroNorte.ancho,
+            NORTE_Z: 0,
+            FRENTE_COBERTIZO_Z: 400,
+            FONDO_COBERTIZO_Z: 498,
+            PISO_Y: 0
+        });
+
+        const COBERTIZO = Object.freeze({
+            xOeste: v4_Suelo[0],
+            xEste: v0_Suelo[0],
+            zFrente: EJES.FRENTE_COBERTIZO_Z,
+            zFondo: EJES.FONDO_COBERTIZO_Z,
+            get anchoFrente() { return this.xEste - this.xOeste; }
+        });
+
+        // Convención de izquierda/derecha de la puerta: vista desde el patio
+        // mirando directamente hacia la fachada del cobertizo.
+        // IZQUIERDA = menor X. Nunca se deriva de la cámara ni de la orientación visual.
+        const DIRECCION_PUERTA = Object.freeze({ IZQUIERDA_X: -1 });
+
 
         const shapeSuelo = new THREE.Shape();
         shapeSuelo.moveTo(0, 0);                             
@@ -594,66 +552,41 @@ Módulo Three.js: esperando…</div>
         const anteO = crearCaja(grosorMuro, distPH, wHO, matMuro); anteO.position.set(-grosorMuro / 2, distPH / 2, distNH + wHO / 2); muroOesteGroup.add(anteO);
         const dinO = crearCaja(grosorMuro, altoDO, wHO, matMuro); dinO.position.set(-grosorMuro / 2, distPH + altoHO + altoDO / 2, distNH + wHO / 2); muroOesteGroup.add(dinO);
         
-        // CELOSÍA DE ESTUCO MINERAL — reemplaza por completo las vigas/listones del vano.
-        // Panel de estuco continuo, sin fondo: las perforaciones son huecos reales
-        // que permiten el paso de aire y luz. Los círculos/óvalos son asimétricos,
-        // de distintos tamaños y ligeramente rotados para un aspecto orgánico.
-        function crearCelosiaOrganicaEstuco(ancho, alto, profundidad, material) {
-            const shape = new THREE.Shape();
-            shape.moveTo(-ancho / 2, -alto / 2);
-            shape.lineTo(ancho / 2, -alto / 2);
-            shape.lineTo(ancho / 2, alto / 2);
-            shape.lineTo(-ancho / 2, alto / 2);
-            shape.closePath();
+        // CELOSÍA ORGÁNICA: ocupa EXACTAMENTE el vano del Muro Oeste.
+        // Está contenida en el mismo plano del muro; no se crea como una pantalla perpendicular.
+        function crearCelosiaOrganicaVanoOeste() {
+            const panelW = wHO;
+            const panelH = altoHO;
+            const panelD = 3.0;
+            const panel = new THREE.Shape();
+            panel.moveTo(0, 0);
+            panel.lineTo(panelW, 0);
+            panel.lineTo(panelW, panelH);
+            panel.lineTo(0, panelH);
+            panel.closePath();
 
-            // [x, y, radioX, radioY, rotación]
             const huecos = [
-                [-126,  27, 12, 18, -0.12], [-92,  30, 16, 12,  0.18],
-                [-53,  25, 12, 17,  0.10], [-17,  31, 17, 12, -0.22],
-                [ 27,  25, 13, 18,  0.16], [ 69,  31, 18, 12, -0.12],
-                [112,  25, 12, 17,  0.24],
-                [-111, -10, 18, 13,  0.12], [-70,  -5, 11, 18, -0.18],
-                [-31,  -9, 17, 12,  0.16], [ 10,  -3, 11, 18, -0.08],
-                [ 49,  -8, 18, 13,  0.20], [ 92,  -3, 12, 18, -0.18],
-                [-118, -39, 11,  9, -0.12], [-82, -38, 15,  10,  0.22],
-                [-43, -39, 10,  8, -0.18], [ -3, -37, 15,  9,  0.12],
-                [ 38, -39, 10,  8, -0.22], [ 76, -37, 15, 10,  0.16],
-                [118, -38, 10,  8, -0.10]
+                [28, 72, 10, 15, -0.10], [58, 32, 16, 11, 0.18], [91, 69, 13, 19, 0.06],
+                [126, 43, 20, 13, -0.20], [163, 75, 11, 15, 0.12], [196, 31, 15, 10, -0.08],
+                [229, 68, 21, 14, 0.15], [265, 38, 12, 18, -0.12], [294, 77, 17, 11, 0.10]
             ];
-
-            for (const [cx, cy, rx, ry, rot] of huecos) {
-                const hole = new THREE.Path();
-                hole.absellipse(cx, cy, rx, ry, 0, Math.PI * 2, false, rot);
-                shape.holes.push(hole);
-            }
-
-            const geom = new THREE.ExtrudeGeometry(shape, {
-                depth: profundidad,
-                bevelEnabled: true,
-                bevelSegments: 2,
-                bevelSize: 0.8,
-                bevelThickness: 0.7,
-                curveSegments: 32
+            huecos.forEach(([cx, cy, rx, ry, rot]) => {
+                const h = new THREE.Path();
+                h.absellipse(cx, cy, rx, ry, 0, Math.PI * 2, false, rot);
+                panel.holes.push(h);
             });
 
-            const pos = geom.attributes.position;
-            // Shape está en XY; profundidad en Z. Se conserva como panel vertical.
-            pos.needsUpdate = true;
-            geom.computeVertexNormals();
-
-            const mesh = new THREE.Mesh(geom, material);
+            const geom = new THREE.ExtrudeGeometry(panel, { depth: panelD, bevelEnabled: true, bevelThickness: 0.8, bevelSize: 0.8, bevelSegments: 2 });
+            const mesh = new THREE.Mesh(geom, matMuro);
+            // La extrusión local Z se convierte en espesor X: el panel queda en el vano del muro.
+            mesh.rotation.y = Math.PI / 2;
+            mesh.position.set(-grosorMuro / 2 - panelD / 2, distPH, distNH);
             mesh.castShadow = true;
             mesh.receiveShadow = true;
-            mesh.name = 'Celosia_Estuco_Mineral_Organica';
+            mesh.renderOrder = 11;
             return mesh;
         }
-
-        const celosiaGroup = new THREE.Group();
-        celosiaGroup.position.set(-grosorMuro / 2 - 0.7, distPH + altoHO / 2, distNH);
-        const celosiaEstuco = crearCelosiaOrganicaEstuco(wHO, altoHO, 2.4, matMuro);
-        celosiaEstuco.position.z = 0;
-        celosiaGroup.add(celosiaEstuco);
-        muroOesteGroup.add(celosiaGroup);
+        muroOesteGroup.add(crearCelosiaOrganicaVanoOeste());
         grupoMuroOeste.add(muroOesteGroup);
 
         const muroSurPtsContinuos = [
@@ -678,8 +611,29 @@ Módulo Three.js: esperando…</div>
             const v2 = [xP3, zP3]; // (27.34, 498)  -> 148 cm Fondo
             const v3 = [xP4, zP4]; // (3.55, 487)   -> 32 cm Chaflán
             const v4 = v4_Suelo; // (2.91, 400)   -> 87 cm Oeste
-            // Muros laterales del nicho: se conservan los muros arquitectónicos existentes.
-const lenFront = Math.hypot(v0[0] - v4[0], v0[1] - v4[1]);
+
+            // 1. Paneles interiores del Cobertizo Sur
+            const pIzq = new THREE.Mesh(new THREE.BoxGeometry(espP, hTotalParedes, Math.hypot(v1[0] - v0[0], v1[1] - v0[1])), matTecaLisa);
+            pIzq.position.set(v1[0] - espP / 2, yCentroMuro, (v0[1] + v1[1]) / 2);
+            nichoSurGroup.add(pIzq);
+
+            const pFondo = new THREE.Mesh(new THREE.BoxGeometry(148, hTotalParedes, espP), matTecaLisa);
+            pFondo.position.set((v1[0] + v2[0]) / 2, yCentroMuro, v1[1] - espP / 2);
+            nichoSurGroup.add(pFondo);
+            
+            const lenChaflan = Math.hypot(v3[0] - v2[0], v3[1] - v2[1]), angChaflan = Math.atan2(v3[1] - v2[1], v3[0] - v2[0]);
+            const pChaflan = new THREE.Mesh(new THREE.BoxGeometry(lenChaflan, hTotalParedes, espP), matTecaLisa);
+            pChaflan.rotation.y = -angChaflan;
+            pChaflan.position.set((v2[0] + v3[0]) / 2, yCentroMuro, (v2[1] + v3[1]) / 2);
+            nichoSurGroup.add(pChaflan);
+            
+            const lenDer = Math.hypot(v4[0] - v3[0], v4[1] - v3[1]), angDer = Math.atan2(v4[1] - v3[1], v4[0] - v3[0]);
+            const pDer = new THREE.Mesh(new THREE.BoxGeometry(lenDer, hTotalParedes, espP), matTecaLisa);
+            pDer.rotation.y = -angDer;
+            pDer.position.set((v3[0] + v4[0]) / 2, yCentroMuro, (v3[1] + v4[1]) / 2);
+            nichoSurGroup.add(pDer);
+            
+            const lenFront = Math.hypot(v0[0] - v4[0], v0[1] - v4[1]);
             // El antiguo foso/desagüe se elimina: el interior queda sobre un escalón
             // de 5 cm, con caída total de 1 cm hacia el frente (Z=400).
             const shapeEscalon = new THREE.Shape();
@@ -725,10 +679,7 @@ const lenFront = Math.hypot(v0[0] - v4[0], v0[1] - v4[1]);
             for (let i = 0; i < posPC.count; i++) posPC.setXYZ(i, posPC.getX(i), 220.0, posPC.getY(i));
             posPC.needsUpdate = true;
             geomPlanoCloset.computeVertexNormals();
-            const cieloRasoMineral = new THREE.Mesh(geomPlanoCloset, matMuro);
-            cieloRasoMineral.name = 'Cielo_Raso_Lavanderia_Estuco_Mineral';
-            cieloRasoMineral.receiveShadow = true;
-            nichoSurGroup.add(cieloRasoMineral);
+            nichoSurGroup.add(new THREE.Mesh(geomPlanoCloset, matTecaLisa));
 
             // =========================================================================
             // TECHO NEGRO MATE CON ALERO FRONTAL 20 CM (Z = 380) Y PENDIENTE FRONTAL
@@ -805,11 +756,10 @@ const lenFront = Math.hypot(v0[0] - v4[0], v0[1] - v4[1]);
             posRoof.needsUpdate = true;
             extrudeTechoGeom.computeVertexNormals();
             
-            const losaTechoMineral = new THREE.Mesh(extrudeTechoGeom, matMuro);
-            losaTechoMineral.name = 'Techo_Lavanderia_Estuco_Mineral';
-            losaTechoMineral.castShadow = true;
-            losaTechoMineral.receiveShadow = true;
-            nichoSurGroup.add(losaTechoMineral);
+            const losaTechoNegra = new THREE.Mesh(extrudeTechoGeom, matTechoNegro);
+            losaTechoNegra.castShadow = true;
+            losaTechoNegra.receiveShadow = true;
+            nichoSurGroup.add(losaTechoNegra);
 
             // =========================================================================
             // ZANJITA EMBUTIDA EN EL PLANO SUPERIOR (SIN BORDES QUE BLOQUEEN EL AGUA)
@@ -885,160 +835,97 @@ const lenFront = Math.hypot(v0[0] - v4[0], v0[1] - v4[1]);
             torreGroup.add(crearEscotilla3D(17.5, 14.0, washerH * 0.78));
 
             // Confinamiento milimétrico
-            // ORIENTACIÓN DEFINITIVA DEL COBERTIZO — VISTA FRONTAL (DESDE EL SUR)
-            // IZQUIERDA = OESTE = v4.  DERECHA = ESTE = v0.
-            // La torre de lavado debe quedar a la IZQUIERDA.
-            // La puerta ocupa el frente completo y abre/desliza hacia la IZQUIERDA.
-            const margenTorreIzquierda = 2.5;
-            const posX_Torre = v4[0] + margenTorreIzquierda + (washerW / 2);
+            const posX_Torre = 175.34 - 2.5 - (washerW / 2); // 137.84 cm
             const posZ_Torre = 446.50; // Centro exacto
             torreGroup.position.set(posX_Torre, 0, posZ_Torre);
             nichoSurGroup.add(torreGroup);
 
             // =========================================================================
-            
-            // Helper de la hoja corrediza de teca.
-            // Debe existir antes de construir la puerta.
-            // Puerta lisa de teca con rejilla discreta de ventilación en una esquina.
-            function crearHojaLisaTecaVentilada(wLeaf, hLeaf) {
-                const leafGroup = new THREE.Group();
-                const grosor = 3.2;
-                const marco = 4.5;
+            // =========================================================================
+            // PUERTA CORREDIZA: SISTEMA DE COORDENADAS DEFINITIVO
+            // =========================================================================
+            // La hoja tiene exactamente el ancho del frente del cobertizo.
+            // Cerrada: centrada en el vano.
+            // Abierta: se desplaza SOLO hacia X negativa (izquierda), hasta quedar delante
+            // del Muro Oeste. El recorrido se calcula desde los límites reales del vano,
+            // nunca desde la cámara ni desde la posición del masterGroup.
+            const wHuecoNichoSur = COBERTIZO.anchoFrente;
+            const altoMarcoSuperior = 11.0;
+            const hPuertaCorrediza = 209.0;
+            const wPuertaCorrediza = wHuecoNichoSur;
+            const zPlanoPuerta = COBERTIZO.zFrente - 3.2; // hacia el patio, delante del frente
+            const xCentroPuertaCerrada = COBERTIZO.xOeste + (wPuertaCorrediza / 2);
+            const xCentroPuertaAbierta = xCentroPuertaCerrada + DIRECCION_PUERTA.IZQUIERDA_X * (wPuertaCorrediza - 1.0);
 
-                // Hoja lisa completa, mismo acabado/color de teca.
-                const hoja = crearCaja(wLeaf, hLeaf, grosor, matTecaLisa);
-                hoja.position.set(0, hLeaf / 2, 0);
-                leafGroup.add(hoja);
+            // Friso superior fijo, alineado al frente real del cobertizo.
+            const frisoSuperior = crearCaja(wHuecoNichoSur + 2.0, altoMarcoSuperior, 2.5, matTecaLisa);
+            frisoSuperior.position.set(xCentroPuertaCerrada, 210.0 + altoMarcoSuperior / 2, zPlanoPuerta);
+            nichoSurGroup.add(frisoSuperior);
 
-                // Marco perimetral muy discreto, integrado al mismo material.
-                const sup = crearCaja(wLeaf, marco, grosor + 0.15, matTecaLisa);
-                sup.position.set(0, hLeaf - marco / 2, -0.25);
-                leafGroup.add(sup);
-                const inf = crearCaja(wLeaf, marco, grosor + 0.15, matTecaLisa);
-                inf.position.set(0, marco / 2, -0.25);
-                leafGroup.add(inf);
-                const izq = crearCaja(marco, hLeaf, grosor + 0.15, matTecaLisa);
-                izq.position.set(-wLeaf / 2 + marco / 2, hLeaf / 2, -0.25);
-                leafGroup.add(izq);
-                const der = crearCaja(marco, hLeaf, grosor + 0.15, matTecaLisa);
-                der.position.set(wLeaf / 2 - marco / 2, hLeaf / 2, -0.25);
-                leafGroup.add(der);
+            // Hoja lisa de PVC/Teca: sin louver.
+            function crearPuertaLisaTeca(ancho, alto) {
+                const g = new THREE.Group();
+                const marco = crearCaja(ancho, alto, 3.0, matTecaLisa);
+                g.add(marco);
 
-                // Rejilla de ventilación: esquina superior izquierda.
-                // Aberturas oscuras simuladas por lamas finas y marco de teca.
-                const ventW = Math.min(32, wLeaf * 0.20);
-                const ventH = 18;
-                const ventX = -wLeaf / 2 + marco + ventW / 2 + 7;
-                const ventY = hLeaf - marco - ventH / 2 - 9;
-
-                const ventFondo = crearCaja(ventW, ventH, 0.8, matAceroOscuro);
-                ventFondo.position.set(ventX, ventY, -grosor / 2 - 0.55);
-                leafGroup.add(ventFondo);
-
-                const ventMarcoSup = crearCaja(ventW + 2, 1.6, 1.2, matTecaLisa);
-                ventMarcoSup.position.set(ventX, ventY + ventH / 2, -grosor / 2 - 1.0);
-                leafGroup.add(ventMarcoSup);
-                const ventMarcoInf = crearCaja(ventW + 2, 1.6, 1.2, matTecaLisa);
-                ventMarcoInf.position.set(ventX, ventY - ventH / 2, -grosor / 2 - 1.0);
-                leafGroup.add(ventMarcoInf);
-                const ventMarcoIzq = crearCaja(1.6, ventH, 1.2, matTecaLisa);
-                ventMarcoIzq.position.set(ventX - ventW / 2, ventY, -grosor / 2 - 1.0);
-                leafGroup.add(ventMarcoIzq);
-                const ventMarcoDer = crearCaja(1.6, ventH, 1.2, matTecaLisa);
-                ventMarcoDer.position.set(ventX + ventW / 2, ventY, -grosor / 2 - 1.0);
-                leafGroup.add(ventMarcoDer);
-
-                const separacion = 4.0;
-                for (let i = -2; i <= 2; i++) {
-                    const lama = crearCaja(ventW - 3, 1.5, 1.0, matTecaLisa);
-                    lama.position.set(ventX, ventY + i * separacion, -grosor / 2 - 1.05);
-                    leafGroup.add(lama);
+                // Rejilla de ventilación en esquina superior derecha.
+                const rejW = Math.min(28, ancho * 0.18);
+                const rejH = 10;
+                const rejillaBase = crearCaja(rejW, rejH, 0.8, matAceroOscuro);
+                rejillaBase.position.set(ancho / 2 - rejW / 2 - 9, alto - 25, -1.7);
+                g.add(rejillaBase);
+                for (let i = 0; i < 5; i++) {
+                    const lama = crearCaja(rejW - 3, 1.0, 1.0, matAcero);
+                    lama.position.set(ancho / 2 - rejW / 2 - 9, alto - 21.5 - i * 2.0, -2.3);
+                    g.add(lama);
                 }
 
-                // Manija vertical discreta en el borde derecho.
-                const manija = crearCaja(1.8, 22, 2.4, matAceroOscuro);
-                manija.position.set(wLeaf / 2 - marco - 4, hLeaf * 0.48, -grosor / 2 - 1.2);
-                leafGroup.add(manija);
-
-                return leafGroup;
+                const manija = crearCaja(2.4, 11, 1.8, matAceroOscuro);
+                manija.position.set(-ancho / 2 + 9, alto * 0.48, -2.2);
+                g.add(manija);
+                return g;
             }
 
-// =========================================================================
-            // =========================================================================
-            // V6.2 — PUERTA CORREDIZA · RIEL EMPOTRADO + CELOSÍA ORGÁNICA
-            // =========================================================================
-            const hPuertaCorrediza = 218.0;
-
-            // Todo el frente del cobertizo.
-            const xFrenteIzq = v4[0];
-            const xFrenteDer = v0[0];
-            const wPuertaCorrediza = xFrenteDer - xFrenteIzq;
-            const xCentroPuerta = (xFrenteIzq + xFrenteDer) / 2;
-
-            // La puerta y el riel se llevan hacia el FRENTE para que,
-            // durante el recorrido hacia la izquierda, pasen por delante
-            // del muro lateral y no choquen con él.
-            const zPlanoPuerta = 391.5;
-
             const puertaCorredizaGroup = new THREE.Group();
-            puertaCorredizaGroup.position.set(xCentroPuerta, 0, zPlanoPuerta);
+            puertaCorredizaGroup.position.set(xCentroPuertaCerrada, 0, zPlanoPuerta);
 
-            // Hoja lisa, misma teca/color del proyecto, con ventilación en esquina.
-            const hojaCorrediza = crearHojaLisaTecaVentilada(
-                wPuertaCorrediza,
-                hPuertaCorrediza
-            );
+            const hojaCorrediza = crearPuertaLisaTeca(wPuertaCorrediza, hPuertaCorrediza);
+            hojaCorrediza.position.set(0, hPuertaCorrediza / 2, 0);
             puertaCorredizaGroup.add(hojaCorrediza);
 
-            // RIEL SUPERIOR TOTALMENTE DENTRO DEL TECHO.
-            // Debe cubrir tanto la posición cerrada como TODO el recorrido
-            // de apertura hacia la izquierda: longitud ≈ 2 veces la hoja.
-            const roofBottom = getRoofBottomAtZ(zPlanoPuerta);
-            const hRiel = 1.8;
-            const largoRiel = (wPuertaCorrediza * 2.0) + 4.0;
-            const riel = crearCaja(largoRiel, hRiel, 1.8, matAceroOscuro);
-            riel.position.set(
-                -wPuertaCorrediza / 2,
-                roofBottom + (hRiel / 2) - 1.35,
-                0
-            );
-            puertaCorredizaGroup.add(riel);
+            // Riel superior totalmente contenido dentro de la cubierta.
+            // El recorrido se extiende hacia IZQUIERDA (X negativa) y queda pegado al Muro Oeste.
+            const margenRiel = 10.0;
+            const xRielMin = xCentroPuertaAbierta - (wPuertaCorrediza / 2) - margenRiel;
+            const xRielMax = xCentroPuertaCerrada + (wPuertaCorrediza / 2) + margenRiel;
+            const largoRiel = xRielMax - xRielMin;
+            const xCentroRiel = (xRielMin + xRielMax) / 2;
+            const zRiel = zPlanoPuerta;
+            const yRiel = getRoofBottomAtZ(zRiel) + 3.5; // dentro del espesor de la cubierta
 
-            // Carros también retranqueados dentro del espesor del techo.
-            const yCarros = roofBottom - 0.85;
-            const carroIzq = crearCaja(4.0, 1.4, 3.8, matAceroOscuro);
-            carroIzq.position.set(-wPuertaCorrediza * 0.30, yCarros, 0);
-            puertaCorredizaGroup.add(carroIzq);
+            const rielCorredizo = crearCaja(largoRiel, 1.8, 2.2, matAceroOscuro);
+            rielCorredizo.position.set(xCentroRiel - xCentroPuertaCerrada, yRiel, -1.0);
+            puertaCorredizaGroup.add(rielCorredizo);
 
-            const carroDer = crearCaja(4.0, 1.4, 3.8, matAceroOscuro);
-            carroDer.position.set(wPuertaCorrediza * 0.30, yCarros, 0);
-            puertaCorredizaGroup.add(carroDer);
+            // Carros pequeños ocultos visualmente dentro de la cubierta.
+            [-0.31, 0.31].forEach(f => {
+                const carro = crearCaja(4.5, 1.8, 4.5, matAceroOscuro);
+                carro.position.set(f * wPuertaCorrediza, yRiel - 2.0, -1.0);
+                puertaCorredizaGroup.add(carro);
+            });
 
-            const hitboxPuertaCorrediza = crearCaja(
-                wPuertaCorrediza,
-                hPuertaCorrediza,
-                4.0,
-                new THREE.MeshBasicMaterial({ visible: false })
-            );
+            const hitboxPuertaCorrediza = crearCaja(wPuertaCorrediza, hPuertaCorrediza, 5.0, new THREE.MeshBasicMaterial({ visible: false }));
             hitboxPuertaCorrediza.position.set(0, hPuertaCorrediza / 2, 0);
             puertaCorredizaGroup.add(hitboxPuertaCorrediza);
-
             nichoSurGroup.add(puertaCorredizaGroup);
 
-            // IZQUIERDA = desplazamiento NEGATIVO en X.
-            // La hoja termina completamente fuera del vano, hacia el lado izquierdo,
-            // y queda delante del muro durante todo el recorrido.
             hitboxPuertaCorrediza.userData = {
                 tipo: 'puerta_corrediza',
-                orientacionFrontal: 'OESTE_IZQUIERDA / ESTE_DERECHA',
-                torreLavado: 'IZQUIERDA',
-                apertura: 'IZQUIERDA',
                 grupo: puertaCorredizaGroup,
                 abierto: false,
-                posX_cerrado: xCentroPuerta,
-                posX_abierto: xCentroPuerta - wPuertaCorrediza - 4.0
+                posX_cerrado: xCentroPuertaCerrada,
+                posX_abierto: xCentroPuertaAbierta
             };
-
             objetosInteractivos.push(hitboxPuertaCorrediza);
 
             grupoMuroSur.add(nichoSurGroup);
@@ -1323,9 +1210,9 @@ const lenFront = Math.hypot(v0[0] - v4[0], v0[1] - v4[1]);
             const refriW = 92, refriH = 180, refriD = 80;
             // Refrigerador French Door realista: cuerpo y cuatro superficies frontales
             // separadas para que las dos puertas superiores y el congelador sean visibles.
-            const matRefriInox = new THREE.MeshStandardMaterial({ color: 0xc5c9c8, metalness: 0.58, roughness: 0.46, envMapIntensity: 0.78 });
-            const matRefriBorde = new THREE.MeshStandardMaterial({ color: 0xaeb3b2, metalness: 0.60, roughness: 0.42, envMapIntensity: 0.75 });
-            const matRefriSombra = new THREE.MeshStandardMaterial({ color: 0x686e6e, metalness: 0.35, roughness: 0.48, envMapIntensity: 0.65 });
+            const matRefriInox = new THREE.MeshStandardMaterial({ color: 0xe6e9e8, metalness: 0.72, roughness: 0.30, envMapIntensity: 1.55 });
+            const matRefriBorde = new THREE.MeshStandardMaterial({ color: 0xbfc4c4, metalness: 0.76, roughness: 0.24, envMapIntensity: 1.5 });
+            const matRefriSombra = new THREE.MeshStandardMaterial({ color: 0x777d7e, metalness: 0.45, roughness: 0.36 });
             const yRefriBase = CONFIG.barra.altoZocalo + 1.2;
             const zFrenteRefri = refriD + 8.5;
             const refriBase = crearCaja(refriW, refriH, refriD, matRefriInox); refriBase.position.set(centerX, yRefriBase + refriH / 2, refriD / 2 + 5); grupoNichoNorte.add(refriBase);
@@ -1342,7 +1229,7 @@ const lenFront = Math.hypot(v0[0] - v4[0], v0[1] - v4[1]);
             const seamH = crearCaja(refriW - 3, 0.9, 2.5, matRefriSombra); seamH.position.set(centerX, yRefriBase + lowerH + 1.2, zFrenteRefri + 1.25); grupoNichoNorte.add(seamH);
 
             // Manijas verticales de las dos puertas francesas y manija horizontal del congelador.
-            const handleV = new THREE.MeshStandardMaterial({ color: 0x4b5051, metalness: 0.78, roughness: 0.32, envMapIntensity: 0.72 });
+            const handleV = new THREE.MeshStandardMaterial({ color: 0x4e5557, metalness: 0.96, roughness: 0.16 });
             function agregarManijaVertical(x) {
                 const h = new THREE.Mesh(new THREE.CylinderGeometry(1.15, 1.15, 78, 18), handleV);
                 h.position.set(x, upperY, zFrenteRefri + 3.2); grupoNichoNorte.add(h);
@@ -1372,7 +1259,9 @@ const lenFront = Math.hypot(v0[0] - v4[0], v0[1] - v4[1]);
 
         construirModuloIzquierdo(); construirModuloAsador(); construirModuloDerecho(); construirNichoNorte();
         
-        masterGroup.position.x = -CONFIG.muroNorte.ancho / 2; 
+        // IMPORTANTE: masterGroup solo centra el modelo para la cámara.
+        // Ninguna geometría usa este offset para decidir izquierda/derecha.
+        masterGroup.position.x = -CONFIG.muroNorte.ancho / 2;
         masterGroup.position.z = 0;
 
         const btnToggleMuros = document.getElementById('btn-toggle-muros'), menuMuros = document.getElementById('menu-muros');
@@ -1427,7 +1316,7 @@ const lenFront = Math.hypot(v0[0] - v4[0], v0[1] - v4[1]);
                 <line x1="${pNE[0]}" y1="${pNE[1] + 110 * scale}" x2="${pNE[0]}" y2="${pNE[1] + (110 + 265) * scale}" stroke="#0284c7" stroke-width="5" />
                 <text x="${pNE[0] + 14}" y="${pNE[1] + (110 + 132) * scale}" fill="#0284c7" font-size="9" font-weight="bold" transform="rotate(90, ${pNE[0] + 14}, ${pNE[1] + (110 + 132) * scale})" text-anchor="middle">VENTANAL 265 cm</text>
                 <line x1="${pNO[0]}" y1="${pNO[1] + 100 * scale}" x2="${pNO[0] + 3 * scale}" y2="${pNO[1] + (100 + 300) * scale}" stroke="#d97706" stroke-width="4" stroke-dasharray="4 2" />
-                <text x="${pNO[0] - 14}" y="${pNO[1] + (100 + 150) * scale}" fill="#d97706" font-size="9" font-weight="bold" transform="rotate(-90, ${pNO[0] - 14}, ${pNO[1] + (100 + 150) * scale})" text-anchor="middle">CELOSÍA VIGAS 300 cm</text>
+                <text x="${pNO[0] - 14}" y="${pNO[1] + (100 + 150) * scale}" fill="#d97706" font-size="9" font-weight="bold" transform="rotate(-90, ${pNO[0] - 14}, ${pNO[1] + (100 + 150) * scale})" text-anchor="middle">CELOSÍA ORGÁNICA DE ESTUCO 300 cm</text>
                 <text x="${pNO[0] + (390 * scale) / 2}" y="${pNO[1] - 10}" fill="#0f172a" font-size="11" font-weight="bold" text-anchor="middle">MURO NORTE: 390 cm</text>
                 <text x="${pES[0] + 28}" y="${pNO[1] + (400 * scale) / 2}" fill="#0f172a" font-size="11" font-weight="bold" transform="rotate(90, ${pES[0] + 28}, ${pNO[1] + (400 * scale) / 2})" text-anchor="middle">MURO ESTE: 400 cm</text>
                 <text x="${(pES[0] + pS1[0]) / 2}" y="${pS1[1] - 8}" fill="#0f172a" font-size="10" font-weight="bold" text-anchor="middle">Muro Falso Recto 90°: 215 cm</text>
@@ -1460,7 +1349,7 @@ const lenFront = Math.hypot(v0[0] - v4[0], v0[1] - v4[1]);
 
         const ITEMS_COTIZACION = [
             { cat: "Estructura y Muebles", item: "Estructura interna en PVC foam / perfilería impermeable", cant: "1 Global", pu: 7800, id: "pvc_cuerpo" },
-            { cat: "Estructura y Muebles", item: "Puerta corrediza de PVC Teca para Cobertizo Sur, con riel superior", cant: "1 Pza", pu: 7200, id: "puerta_corrediza" },
+            { cat: "Estructura y Muebles", item: "Puerta corrediza lisa de PVC Teca para Cobertizo Sur, con riel superior empotrado en cubierta", cant: "1 Pza", pu: 7200, id: "puerta_corrediza" },
             { cat: "Muro Falso", item: "Bastidor acero galvanizado + Panel Durock 1/2'' + Basecoat e impermeable en Muro 215 a 90°", cant: "6.8 m²", pu: 1150, id: "muro_durock" },
             { cat: "Cubiertas", item: "Cubiertas y costados de Microcemento negro mate 6cm", cant: "4.2 m²", pu: 1650, id: "microcemento" },
             { cat: "Cubiertas", item: "Techo negro mate con zanja embutida de captación y bajante interior al foso", cant: "1 Pza", pu: 6200, id: "techo_nicho_sur" },
@@ -1491,7 +1380,7 @@ const lenFront = Math.hypot(v0[0] - v4[0], v0[1] - v4[1]);
                             <li><strong>Muro Este:</strong> 400 cm totales (Ventanal de 265 cm).</li>
                             <li><strong>Muro Oeste:</strong> 487 cm de longitud; altura total 260 cm, con 100 cm de muro inferior + 100 cm de vano + 60 cm de muro superior; vano de 300 cm.</li>
                             <li><strong>Muro Sur 1 (Muro Falso Recto a 90°):</strong> Tramo de 215 cm de longitud ejecutado en bastidor de acero galvanizado con panel de cemento Durock de 1/2''.</li>
-                            <li><strong>Cobertizo Sur (Lavandería):</strong> Muro Este de 98 cm, Muro Oeste de 87 cm, Fondo de 148 cm y Chaflán de 32 cm. Puerta corrediza única de PVC Teca que abre hacia la izquierda y queda detrás del muro falso, zoclo superior de 11 cm sobre la puerta, cubierta negra mate con zanja embutida directa y bajante vertical recto interior derecho (Oeste), y Torre de lavado negra (5 cm al frente, 10 cm atrás, 2.5 cm a la izquierda).</li>
+                            <li><strong>Cobertizo Sur (Lavandería):</strong> Muro Este de 98 cm, Muro Oeste de 87 cm, Fondo de 148 cm y Chaflán de 32 cm. Puerta corrediza lisa única de PVC Teca, abre hacia la izquierda (X negativa), con rejilla de ventilación y riel empotrado en la cubierta, cubierta negra mate con zanja embutida directa y bajante vertical recto interior derecho (Oeste), y Torre de lavado negra (5 cm al frente, 10 cm atrás, 2.5 cm a la izquierda).</li>
                         </ul>
                     </div>
                     <div class="data-section">
