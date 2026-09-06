@@ -91,7 +91,7 @@
 #diagnostic-panel .bad{color:#ff9b9b}
 </style>
 <div id="diagnostic-panel">
-  <strong>DIAGNÓSTICO V6.2 · PUERTA CORREDIZA · RIEL EMPOTRADO · IZQUIERDA</strong>
+  <strong>DIAGNÓSTICO V6.2 · PUERTA CORREDIZA · IZQUIERDA CORREGIDA</strong>
   <div id="diagnostic-status">HTML: OK
 WebGL: comprobando…
 Módulo Three.js: esperando…</div>
@@ -147,11 +147,10 @@ Módulo Three.js: esperando…</div>
             Muros ▾
         </button>
         <div id="menu-muros">
-            <label class="item-check-muro"><span>Muro Norte</span><input type="checkbox" id="chk-muro-norte" checked></label>
-            <label class="item-check-muro"><span>Muro Este</span><input type="checkbox" id="chk-muro-este" checked></label>
-            <label class="item-check-muro"><span>Muro Oeste</span><input type="checkbox" id="chk-muro-oeste" checked></label>
-            <label class="item-check-muro"><span>Muro Sur</span><input type="checkbox" id="chk-muro-sur" checked></label>
-            <label class="item-check-muro"><span>Nicho Norte (Refrigerador)</span><input type="checkbox" id="chk-muro-nicho" checked></label>
+            <label class="item-check-muro"><span>Muro Norte + refri</span><input type="checkbox" id="chk-muro-norte" checked></label>
+            <label class="item-check-muro"><span>Muro Este + ventana</span><input type="checkbox" id="chk-muro-este" checked></label>
+            <label class="item-check-muro"><span>Muro Oeste + ventana</span><input type="checkbox" id="chk-muro-oeste" checked></label>
+            <label class="item-check-muro"><span>Muro Sur + lavandería</span><input type="checkbox" id="chk-muro-sur" checked></label>
         </div>
     </div>
 
@@ -489,7 +488,7 @@ Módulo Three.js: esperando…</div>
         const objetosInteractivos = [];
         const masterGroup = new THREE.Group(); scene.add(masterGroup);
         const grupoMuroNorte = new THREE.Group(), grupoMuroEste = new THREE.Group(), grupoMuroOeste = new THREE.Group(), grupoMuroSur = new THREE.Group(), grupoNichoNorte = new THREE.Group();
-        masterGroup.add(grupoMuroNorte, grupoMuroEste, grupoMuroOeste, grupoMuroSur, grupoNichoNorte);
+        masterGroup.add(grupoMuroNorte, grupoMuroEste, grupoMuroOeste, grupoMuroSur);
 
         function crearCaja(w, h, d, mat) { const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat); mesh.castShadow = true; mesh.receiveShadow = true; return mesh; }
 
@@ -935,8 +934,11 @@ const lenFront = Math.hypot(v0[0] - v4[0], v0[1] - v4[1]);
             const hRiel = 1.8;
             const largoRiel = (wPuertaCorrediza * 2.0) + 4.0;
             const riel = crearCaja(largoRiel, hRiel, 1.8, matAceroOscuro);
+            // El recorrido de apertura es hacia +X (izquierda real).
+            // El riel debe comenzar en el extremo izquierdo de la hoja cerrada
+            // y continuar hacia +X para cubrir TODO el recorrido.
             riel.position.set(
-                -wPuertaCorrediza / 2,
+                wPuertaCorrediza / 2,
                 roofBottom + (hRiel / 2) - 1.35,
                 0
             );
@@ -963,15 +965,17 @@ const lenFront = Math.hypot(v0[0] - v4[0], v0[1] - v4[1]);
 
             nichoSurGroup.add(puertaCorredizaGroup);
 
-            // IZQUIERDA = desplazamiento NEGATIVO en X.
+            // IZQUIERDA REAL = desplazamiento POSITIVO en X.
             // La hoja termina completamente fuera del vano, hacia el lado izquierdo,
             // y queda delante del muro durante todo el recorrido.
+            // OJO: el grupo ya está centrado en la posición cerrada; por eso
+            // estas posiciones son LOCALES y no deben volver a usar xCentroPuerta.
             hitboxPuertaCorrediza.userData = {
                 tipo: 'puerta_corrediza',
                 grupo: puertaCorredizaGroup,
                 abierto: false,
-                posX_cerrado: xCentroPuerta,
-                posX_abierto: xCentroPuerta - wPuertaCorrediza - 4.0
+                posX_cerrado: 0,
+                posX_abierto: wPuertaCorrediza + 4.0
             };
 
             objetosInteractivos.push(hitboxPuertaCorrediza);
@@ -1306,6 +1310,9 @@ const lenFront = Math.hypot(v0[0] - v4[0], v0[1] - v4[1]);
         }
 
         construirModuloIzquierdo(); construirModuloAsador(); construirModuloDerecho(); construirNichoNorte();
+        // El Muro Norte es el contenedor del nicho del refrigerador.
+        // Así el botón "Muro Norte" controla muro + ventana + mobiliario + nicho/refri.
+        grupoMuroNorte.add(grupoNichoNorte);
         
         masterGroup.position.x = -CONFIG.muroNorte.ancho / 2; 
         masterGroup.position.z = 0;
@@ -1317,7 +1324,6 @@ const lenFront = Math.hypot(v0[0] - v4[0], v0[1] - v4[1]);
         document.getElementById('chk-muro-este').addEventListener('change', e => grupoMuroEste.visible = e.target.checked);
         document.getElementById('chk-muro-oeste').addEventListener('change', e => grupoMuroOeste.visible = e.target.checked);
         document.getElementById('chk-muro-sur').addEventListener('change', e => grupoMuroSur.visible = e.target.checked);
-        document.getElementById('chk-muro-nicho').addEventListener('change', e => grupoNichoNorte.visible = e.target.checked);
 
         const raycaster = new THREE.Raycaster(), mouse = new THREE.Vector2(); let pointerDownPos = { x: 0, y: 0 };
         window.addEventListener('pointerdown', (e) => pointerDownPos = { x: e.clientX, y: e.clientY });
