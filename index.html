@@ -161,7 +161,7 @@
         const hNichoTotal = 202; 
         const topH = CONFIG.barra.grosorCubierta, topD = CONFIG.barra.profundidadTotal, anguloPendiente = Math.atan(CONFIG.barra.pendienteCubierta / topD);
 
-        // V6.2 — optimización conservadora: se conserva íntegra la arquitectura de carga de V6/V6.1.
+        // V6.4 — optimización conservadora: se conserva íntegra la arquitectura de carga de V6/V6.1.
         // Solo se optimiza lo que no altera geometría, interacción ni dependencias.
         const container = document.getElementById('canvas-container');
         // V6 AUDITORÍA / REFACTOR:
@@ -463,7 +463,11 @@
         // Convención de izquierda/derecha de la puerta: vista desde el patio
         // mirando directamente hacia la fachada del cobertizo.
         // IZQUIERDA = menor X. Nunca se deriva de la cámara ni de la orientación visual.
-        const DIRECCION_PUERTA = Object.freeze({ IZQUIERDA_X: -1 });
+        const DIRECCION_PUERTA = Object.freeze({
+            // En la fachada del cobertizo, 'izquierda' arquitectónica = +X.
+            // Esta convención es fija y no depende de la cámara.
+            IZQUIERDA_FACHADA_X: +1
+        });
 
 
         const shapeSuelo = new THREE.Shape();
@@ -578,9 +582,10 @@
 
             const geom = new THREE.ExtrudeGeometry(panel, { depth: panelD, bevelEnabled: true, bevelThickness: 0.8, bevelSize: 0.8, bevelSegments: 2 });
             const mesh = new THREE.Mesh(geom, matMuro);
-            // La extrusión local Z se convierte en espesor X: el panel queda en el vano del muro.
+            // El panel conserva el eje longitudinal del Muro Oeste (local Z) y su espesor queda normal al muro (local X).
+            // Se coloca sobre la cara interior del vano, sin girarlo fuera del plano del muro.
             mesh.rotation.y = Math.PI / 2;
-            mesh.position.set(-grosorMuro / 2 - panelD / 2, distPH, distNH);
+            mesh.position.set(grosorMuro / 2 + panelD / 2, distPH, distNH);
             mesh.castShadow = true;
             mesh.receiveShadow = true;
             mesh.renderOrder = 11;
@@ -855,7 +860,9 @@
             const wPuertaCorrediza = wHuecoNichoSur;
             const zPlanoPuerta = COBERTIZO.zFrente - 3.2; // hacia el patio, delante del frente
             const xCentroPuertaCerrada = COBERTIZO.xOeste + (wPuertaCorrediza / 2);
-            const xCentroPuertaAbierta = xCentroPuertaCerrada + DIRECCION_PUERTA.IZQUIERDA_X * (wPuertaCorrediza - 1.0);
+            // La hoja debe abandonar COMPLETAMENTE el vano hacia la izquierda de la fachada.
+            // En este modelo la izquierda arquitectónica de la fachada corresponde a +X.
+            const xCentroPuertaAbierta = xCentroPuertaCerrada + DIRECCION_PUERTA.IZQUIERDA_FACHADA_X * wPuertaCorrediza;
 
             // Friso superior fijo, alineado al frente real del cobertizo.
             const frisoSuperior = crearCaja(wHuecoNichoSur + 2.0, altoMarcoSuperior, 2.5, matTecaLisa);
@@ -894,7 +901,7 @@
             puertaCorredizaGroup.add(hojaCorrediza);
 
             // Riel superior totalmente contenido dentro de la cubierta.
-            // El recorrido se extiende hacia IZQUIERDA (X negativa) y queda pegado al Muro Oeste.
+            // El recorrido se extiende hacia la IZQUIERDA ARQUITECTÓNICA (+X) y queda contenido en el plano de la cubierta.
             const margenRiel = 10.0;
             const xRielMin = xCentroPuertaAbierta - (wPuertaCorrediza / 2) - margenRiel;
             const xRielMax = xCentroPuertaCerrada + (wPuertaCorrediza / 2) + margenRiel;
