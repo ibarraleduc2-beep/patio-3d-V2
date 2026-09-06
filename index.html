@@ -91,7 +91,7 @@
 #diagnostic-panel .bad{color:#ff9b9b}
 </style>
 <div id="diagnostic-panel">
-  <strong>DIAGNÓSTICO V6.2 · CELOSÍA ORGÁNICA DE ESTUCO</strong>
+  <strong>DIAGNÓSTICO V6.2 · CELOSÍA ORGÁNICA DE ESTUCO · ORIENTACIÓN CORREGIDA</strong>
   <div id="diagnostic-status">HTML: OK
 WebGL: comprobando…
 Módulo Three.js: esperando…</div>
@@ -885,7 +885,12 @@ const lenFront = Math.hypot(v0[0] - v4[0], v0[1] - v4[1]);
             torreGroup.add(crearEscotilla3D(17.5, 14.0, washerH * 0.78));
 
             // Confinamiento milimétrico
-            const posX_Torre = 175.34 - 2.5 - (washerW / 2); // 137.84 cm
+            // ORIENTACIÓN DEFINITIVA DEL COBERTIZO — VISTA FRONTAL (DESDE EL SUR)
+            // IZQUIERDA = OESTE = v4.  DERECHA = ESTE = v0.
+            // La torre de lavado debe quedar a la IZQUIERDA.
+            // La puerta ocupa el frente completo y abre/desliza hacia la IZQUIERDA.
+            const margenTorreIzquierda = 2.5;
+            const posX_Torre = v4[0] + margenTorreIzquierda + (washerW / 2);
             const posZ_Torre = 446.50; // Centro exacto
             torreGroup.position.set(posX_Torre, 0, posZ_Torre);
             nichoSurGroup.add(torreGroup);
@@ -1025,6 +1030,9 @@ const lenFront = Math.hypot(v0[0] - v4[0], v0[1] - v4[1]);
             // y queda delante del muro durante todo el recorrido.
             hitboxPuertaCorrediza.userData = {
                 tipo: 'puerta_corrediza',
+                orientacionFrontal: 'OESTE_IZQUIERDA / ESTE_DERECHA',
+                torreLavado: 'IZQUIERDA',
+                apertura: 'IZQUIERDA',
                 grupo: puertaCorredizaGroup,
                 abierto: false,
                 posX_cerrado: xCentroPuerta,
