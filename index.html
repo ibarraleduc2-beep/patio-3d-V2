@@ -91,7 +91,7 @@
 #diagnostic-panel .bad{color:#ff9b9b}
 </style>
 <div id="diagnostic-panel">
-  <strong>DIAGNÓSTICO V6.2 · PUERTA CORREDIZA · IZQUIERDA CORREGIDA</strong>
+  <strong>DIAGNÓSTICO V6.2 · CELOSÍA ORGÁNICA DE ESTUCO</strong>
   <div id="diagnostic-status">HTML: OK
 WebGL: comprobando…
 Módulo Three.js: esperando…</div>
@@ -147,10 +147,11 @@ Módulo Three.js: esperando…</div>
             Muros ▾
         </button>
         <div id="menu-muros">
-            <label class="item-check-muro"><span>Muro Norte + refri</span><input type="checkbox" id="chk-muro-norte" checked></label>
-            <label class="item-check-muro"><span>Muro Este + ventana</span><input type="checkbox" id="chk-muro-este" checked></label>
-            <label class="item-check-muro"><span>Muro Oeste + ventana</span><input type="checkbox" id="chk-muro-oeste" checked></label>
-            <label class="item-check-muro"><span>Muro Sur + lavandería</span><input type="checkbox" id="chk-muro-sur" checked></label>
+            <label class="item-check-muro"><span>Muro Norte</span><input type="checkbox" id="chk-muro-norte" checked></label>
+            <label class="item-check-muro"><span>Muro Este</span><input type="checkbox" id="chk-muro-este" checked></label>
+            <label class="item-check-muro"><span>Muro Oeste</span><input type="checkbox" id="chk-muro-oeste" checked></label>
+            <label class="item-check-muro"><span>Muro Sur</span><input type="checkbox" id="chk-muro-sur" checked></label>
+            <label class="item-check-muro"><span>Nicho Norte (Refrigerador)</span><input type="checkbox" id="chk-muro-nicho" checked></label>
         </div>
     </div>
 
@@ -488,7 +489,7 @@ Módulo Three.js: esperando…</div>
         const objetosInteractivos = [];
         const masterGroup = new THREE.Group(); scene.add(masterGroup);
         const grupoMuroNorte = new THREE.Group(), grupoMuroEste = new THREE.Group(), grupoMuroOeste = new THREE.Group(), grupoMuroSur = new THREE.Group(), grupoNichoNorte = new THREE.Group();
-        masterGroup.add(grupoMuroNorte, grupoMuroEste, grupoMuroOeste, grupoMuroSur);
+        masterGroup.add(grupoMuroNorte, grupoMuroEste, grupoMuroOeste, grupoMuroSur, grupoNichoNorte);
 
         function crearCaja(w, h, d, mat) { const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat); mesh.castShadow = true; mesh.receiveShadow = true; return mesh; }
 
@@ -593,10 +594,67 @@ Módulo Three.js: esperando…</div>
         const anteO = crearCaja(grosorMuro, distPH, wHO, matMuro); anteO.position.set(-grosorMuro / 2, distPH / 2, distNH + wHO / 2); muroOesteGroup.add(anteO);
         const dinO = crearCaja(grosorMuro, altoDO, wHO, matMuro); dinO.position.set(-grosorMuro / 2, distPH + altoHO + altoDO / 2, distNH + wHO / 2); muroOesteGroup.add(dinO);
         
-        const vSize = CONFIG.muroOeste.vigaTamaño, vSep = CONFIG.muroOeste.vigaSeparacionAprox, numV = Math.floor((wHO - vSep) / (vSize + vSep)), sepR = (wHO - (numV * vSize)) / (numV + 1); 
-        const vigasGroup = new THREE.Group(); vigasGroup.position.set(-grosorMuro / 2, distPH + altoHO / 2, distNH);
-        for (let v = 0; v < numV; v++) { const vM = crearCaja(vSize, altoHO, vSize, matListonLambrin); vM.position.set(0, 0, sepR + (v * (vSize + sepR)) + (vSize / 2)); vigasGroup.add(vM); }
-        muroOesteGroup.add(vigasGroup); grupoMuroOeste.add(muroOesteGroup);
+        // CELOSÍA DE ESTUCO MINERAL — reemplaza por completo las vigas/listones del vano.
+        // Panel de estuco continuo, sin fondo: las perforaciones son huecos reales
+        // que permiten el paso de aire y luz. Los círculos/óvalos son asimétricos,
+        // de distintos tamaños y ligeramente rotados para un aspecto orgánico.
+        function crearCelosiaOrganicaEstuco(ancho, alto, profundidad, material) {
+            const shape = new THREE.Shape();
+            shape.moveTo(-ancho / 2, -alto / 2);
+            shape.lineTo(ancho / 2, -alto / 2);
+            shape.lineTo(ancho / 2, alto / 2);
+            shape.lineTo(-ancho / 2, alto / 2);
+            shape.closePath();
+
+            // [x, y, radioX, radioY, rotación]
+            const huecos = [
+                [-126,  27, 12, 18, -0.12], [-92,  30, 16, 12,  0.18],
+                [-53,  25, 12, 17,  0.10], [-17,  31, 17, 12, -0.22],
+                [ 27,  25, 13, 18,  0.16], [ 69,  31, 18, 12, -0.12],
+                [112,  25, 12, 17,  0.24],
+                [-111, -10, 18, 13,  0.12], [-70,  -5, 11, 18, -0.18],
+                [-31,  -9, 17, 12,  0.16], [ 10,  -3, 11, 18, -0.08],
+                [ 49,  -8, 18, 13,  0.20], [ 92,  -3, 12, 18, -0.18],
+                [-118, -39, 11,  9, -0.12], [-82, -38, 15,  10,  0.22],
+                [-43, -39, 10,  8, -0.18], [ -3, -37, 15,  9,  0.12],
+                [ 38, -39, 10,  8, -0.22], [ 76, -37, 15, 10,  0.16],
+                [118, -38, 10,  8, -0.10]
+            ];
+
+            for (const [cx, cy, rx, ry, rot] of huecos) {
+                const hole = new THREE.Path();
+                hole.absellipse(cx, cy, rx, ry, 0, Math.PI * 2, false, rot);
+                shape.holes.push(hole);
+            }
+
+            const geom = new THREE.ExtrudeGeometry(shape, {
+                depth: profundidad,
+                bevelEnabled: true,
+                bevelSegments: 2,
+                bevelSize: 0.8,
+                bevelThickness: 0.7,
+                curveSegments: 32
+            });
+
+            const pos = geom.attributes.position;
+            // Shape está en XY; profundidad en Z. Se conserva como panel vertical.
+            pos.needsUpdate = true;
+            geom.computeVertexNormals();
+
+            const mesh = new THREE.Mesh(geom, material);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            mesh.name = 'Celosia_Estuco_Mineral_Organica';
+            return mesh;
+        }
+
+        const celosiaGroup = new THREE.Group();
+        celosiaGroup.position.set(-grosorMuro / 2 - 0.7, distPH + altoHO / 2, distNH);
+        const celosiaEstuco = crearCelosiaOrganicaEstuco(wHO, altoHO, 2.4, matMuro);
+        celosiaEstuco.position.z = 0;
+        celosiaGroup.add(celosiaEstuco);
+        muroOesteGroup.add(celosiaGroup);
+        grupoMuroOeste.add(muroOesteGroup);
 
         const muroSurPtsContinuos = [
             [390, 400], [xP1, zP1], [xP2, zP2], [xP3, zP3], [xP4, zP4],
@@ -902,7 +960,7 @@ const lenFront = Math.hypot(v0[0] - v4[0], v0[1] - v4[1]);
 
 // =========================================================================
             // =========================================================================
-            // V6.2 — PUERTA CORREDIZA · RIEL EMPOTRADO + RECORRIDO A LA IZQUIERDA
+            // V6.2 — PUERTA CORREDIZA · RIEL EMPOTRADO + CELOSÍA ORGÁNICA
             // =========================================================================
             const hPuertaCorrediza = 218.0;
 
@@ -934,11 +992,8 @@ const lenFront = Math.hypot(v0[0] - v4[0], v0[1] - v4[1]);
             const hRiel = 1.8;
             const largoRiel = (wPuertaCorrediza * 2.0) + 4.0;
             const riel = crearCaja(largoRiel, hRiel, 1.8, matAceroOscuro);
-            // El recorrido de apertura es hacia +X (izquierda real).
-            // El riel debe comenzar en el extremo izquierdo de la hoja cerrada
-            // y continuar hacia +X para cubrir TODO el recorrido.
             riel.position.set(
-                wPuertaCorrediza / 2,
+                -wPuertaCorrediza / 2,
                 roofBottom + (hRiel / 2) - 1.35,
                 0
             );
@@ -965,17 +1020,15 @@ const lenFront = Math.hypot(v0[0] - v4[0], v0[1] - v4[1]);
 
             nichoSurGroup.add(puertaCorredizaGroup);
 
-            // IZQUIERDA REAL = desplazamiento POSITIVO en X.
+            // IZQUIERDA = desplazamiento NEGATIVO en X.
             // La hoja termina completamente fuera del vano, hacia el lado izquierdo,
             // y queda delante del muro durante todo el recorrido.
-            // OJO: el grupo ya está centrado en la posición cerrada; por eso
-            // estas posiciones son LOCALES y no deben volver a usar xCentroPuerta.
             hitboxPuertaCorrediza.userData = {
                 tipo: 'puerta_corrediza',
                 grupo: puertaCorredizaGroup,
                 abierto: false,
-                posX_cerrado: 0,
-                posX_abierto: wPuertaCorrediza + 4.0
+                posX_cerrado: xCentroPuerta,
+                posX_abierto: xCentroPuerta - wPuertaCorrediza - 4.0
             };
 
             objetosInteractivos.push(hitboxPuertaCorrediza);
@@ -1310,9 +1363,6 @@ const lenFront = Math.hypot(v0[0] - v4[0], v0[1] - v4[1]);
         }
 
         construirModuloIzquierdo(); construirModuloAsador(); construirModuloDerecho(); construirNichoNorte();
-        // El Muro Norte es el contenedor del nicho del refrigerador.
-        // Así el botón "Muro Norte" controla muro + ventana + mobiliario + nicho/refri.
-        grupoMuroNorte.add(grupoNichoNorte);
         
         masterGroup.position.x = -CONFIG.muroNorte.ancho / 2; 
         masterGroup.position.z = 0;
@@ -1324,6 +1374,7 @@ const lenFront = Math.hypot(v0[0] - v4[0], v0[1] - v4[1]);
         document.getElementById('chk-muro-este').addEventListener('change', e => grupoMuroEste.visible = e.target.checked);
         document.getElementById('chk-muro-oeste').addEventListener('change', e => grupoMuroOeste.visible = e.target.checked);
         document.getElementById('chk-muro-sur').addEventListener('change', e => grupoMuroSur.visible = e.target.checked);
+        document.getElementById('chk-muro-nicho').addEventListener('change', e => grupoNichoNorte.visible = e.target.checked);
 
         const raycaster = new THREE.Raycaster(), mouse = new THREE.Vector2(); let pointerDownPos = { x: 0, y: 0 };
         window.addEventListener('pointerdown', (e) => pointerDownPos = { x: e.clientX, y: e.clientY });
