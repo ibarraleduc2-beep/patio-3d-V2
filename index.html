@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-    <title>Visualizador 3D Interactivo - Patio Mineral Orgánico V6.6 MASTER · Coordenadas Arquitectónicas</title>
+    <title>Visualizador 3D Interactivo - Patio Mineral Orgánico V6.8</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; overflow: hidden; background-color: #5c7e9c; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; touch-action: none; user-select: none; }
@@ -76,11 +76,6 @@
     </script>
 </head>
 <body>
-<style>
-#version-identificador{position:fixed;top:14px;left:14px;z-index:99999;max-width:calc(100vw - 28px);padding:10px 16px;border:2px solid rgba(255,255,255,.28);border-radius:14px;background:rgba(10,20,38,.94);color:#fff;font:800 15px/1.25 Arial,sans-serif;letter-spacing:.4px;box-shadow:0 6px 20px rgba(0,0,0,.28);pointer-events:none;}
-</style>
-<div id="version-identificador">V6.7 MASTER • RIEL 2X • HOLGURAS FIJAS • PVC MADERA LISA</div>
-
 
     <div id="canvas-container"></div>
     <div id="instrucciones">Toca la puerta corrediza, asador, cajones y persiana.<br>Arrastra 360° para rotar | Pellizca / Rueda para zoom</div>
@@ -166,7 +161,7 @@
         const hNichoTotal = 202; 
         const topH = CONFIG.barra.grosorCubierta, topD = CONFIG.barra.profundidadTotal, anguloPendiente = Math.atan(CONFIG.barra.pendienteCubierta / topD);
 
-        // V6.7 MASTER — sistema de coordenadas arquitectónicas: celosía en vano, puerta y riel independientes; holguras de montaje fijas; frentes en PVC madera lisa.
+        // V6.2 — optimización conservadora: se conserva íntegra la arquitectura de carga de V6/V6.1.
         // Solo se optimiza lo que no altera geometría, interacción ni dependencias.
         const container = document.getElementById('canvas-container');
         // V6 AUDITORÍA / REFACTOR:
@@ -221,46 +216,97 @@
         // GENERADORES PROCEDIMENTALES DE TEXTURAS EN ALTA DEFINICIÓN
         // =========================================================================
         function crearTexturaMaderaTecaDuelas() {
+            // PVC madera lisa: veta continua tipo parota/teca, SIN duelas ni listones.
+            // Se usa el mismo acabado para frentes, interiores y puertas.
             const canvas = document.createElement('canvas');
-            canvas.width = 1024;
-            canvas.height = 1024;
+            canvas.width = 2048;
+            canvas.height = 2048;
             const ctx = canvas.getContext('2d');
 
-            ctx.fillStyle = "#c08a59";
-            ctx.fillRect(0, 0, 1024, 1024);
+            ctx.fillStyle = "#b97845";
+            ctx.fillRect(0, 0, 2048, 2048);
 
-            const numDuelas = 16;
-            const wDuela = 1024 / numDuelas;
+            // Variación suave de tono para aspecto de parota natural.
+            const base = ctx.createLinearGradient(0, 0, 2048, 0);
+            base.addColorStop(0, "#a9683d");
+            base.addColorStop(0.22, "#c58952");
+            base.addColorStop(0.48, "#b87543");
+            base.addColorStop(0.72, "#c98c57");
+            base.addColorStop(1, "#a9673d");
+            ctx.fillStyle = base;
+            ctx.fillRect(0, 0, 2048, 2048);
 
-            for (let d = 0; d < numDuelas; d++) {
-                const x0 = d * wDuela;
-                const tonoBase = 0.92 + Math.random() * 0.16;
-                ctx.fillStyle = `rgb(${Math.floor(181 * tonoBase)}, ${Math.floor(132 * tonoBase)}, ${Math.floor(88 * tonoBase)})`;
-                ctx.fillRect(x0, 0, wDuela, 1024);
+            // Veta longitudinal continua y orgánica, sin juntas entre tablas.
+            for (let i = 0; i < 180; i++) {
+                const y0 = Math.random() * 2048;
+                const amp = 4 + Math.random() * 18;
+                const freq = 0.0018 + Math.random() * 0.0032;
+                const phase = Math.random() * Math.PI * 2;
+                const alpha = 0.055 + Math.random() * 0.075;
 
-                ctx.strokeStyle = "rgba(82, 50, 25, 0.13)";
-                ctx.lineWidth = 1.5;
-                for (let v = 0; v < 14; v++) {
-                    ctx.beginPath();
-                    const vx = x0 + Math.random() * wDuela;
-                    ctx.moveTo(vx, 0);
-                    ctx.bezierCurveTo(vx + Math.random() * 8 - 4, 340, vx + Math.random() * 10 - 5, 680, vx + Math.random() * 6 - 3, 1024);
-                    ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(0, y0);
+                for (let x = 0; x <= 2048; x += 18) {
+                    const y = y0
+                        + Math.sin(x * freq + phase) * amp
+                        + Math.sin(x * freq * 0.37 + phase * 1.7) * amp * 0.45;
+                    ctx.lineTo(x, y);
                 }
+                ctx.strokeStyle = `rgba(73, 40, 21, ${alpha})`;
+                ctx.lineWidth = 1 + Math.random() * 2.2;
+                ctx.stroke();
+            }
 
-                ctx.fillStyle = "#58351d";
-                ctx.fillRect(x0 + wDuela - 2.5, 0, 2.5, 1024);
+            // Vetas claras paralelas para dar profundidad de madera real.
+            for (let i = 0; i < 110; i++) {
+                const y0 = Math.random() * 2048;
+                const amp = 3 + Math.random() * 13;
+                const freq = 0.002 + Math.random() * 0.0028;
+                const phase = Math.random() * Math.PI * 2;
 
-                ctx.fillStyle = "rgba(255, 235, 210, 0.18)";
-                ctx.fillRect(x0, 0, 1.2, 1024);
+                ctx.beginPath();
+                ctx.moveTo(0, y0);
+                for (let x = 0; x <= 2048; x += 20) {
+                    const y = y0
+                        + Math.sin(x * freq + phase) * amp
+                        + Math.sin(x * freq * 0.42) * amp * 0.35;
+                    ctx.lineTo(x, y);
+                }
+                ctx.strokeStyle = `rgba(245, 205, 158, ${0.045 + Math.random() * 0.065})`;
+                ctx.lineWidth = 0.8 + Math.random() * 1.6;
+                ctx.stroke();
+            }
+
+            // Algunos nudos/figuras suaves, sin exagerar.
+            for (let i = 0; i < 18; i++) {
+                const cx = 120 + Math.random() * 1808;
+                const cy = 100 + Math.random() * 1848;
+                const rx = 18 + Math.random() * 34;
+                const ry = 5 + Math.random() * 13;
+
+                ctx.save();
+                ctx.translate(cx, cy);
+                ctx.rotate((Math.random() - 0.5) * 0.35);
+                ctx.beginPath();
+                ctx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2);
+                ctx.strokeStyle = "rgba(72, 38, 20, 0.16)";
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.ellipse(0, 0, rx * 0.55, ry * 0.32, 0, 0, Math.PI * 2);
+                ctx.strokeStyle = "rgba(245, 205, 158, 0.08)";
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+                ctx.restore();
             }
 
             const texture = new THREE.CanvasTexture(canvas);
             texture.wrapS = THREE.RepeatWrapping;
             texture.wrapT = THREE.RepeatWrapping;
-            texture.repeat.set(2.5, 2.5);
+            texture.repeat.set(1.15, 1.15);
             texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
-            texture.minFilter = THREE.LinearMipmapLinearFilter; texture.magFilter = THREE.LinearFilter;
+            texture.minFilter = THREE.LinearMipmapLinearFilter;
+            texture.magFilter = THREE.LinearFilter;
             texture.colorSpace = THREE.SRGBColorSpace;
             return texture;
         }
@@ -383,26 +429,19 @@
             });
         }
 
-        // TKPVC Teca: mismo acabado/color en frentes de gabinetes,
-        // puertas/revestimientos del cobertizo y revestimiento interior del nicho.
+        // PVC MADERA LISA: mismo acabado continuo en TODO el mobiliario y cobertizos.
+        // Tiene veta tipo parota/teca, pero NO tiene listones, duelas ni entrecalles.
         const matTKPVC = new THREE.MeshStandardMaterial({
             map: textureTecaDuelas,
-            color: CONFIG.materiales.tecaInterior.color,
-            roughness: 0.62,
+            color: 0xffffff,
+            roughness: 0.58,
             bumpMap: textureTecaDuelas,
-            bumpScale: 0.18,
+            bumpScale: 0.07,
             side: THREE.DoubleSide
         });
-        // V6.7 — PVC madera LISA: sin listones, sin textura de duelas y con el mismo tono cálido.
-        const matPVCMaderaLiso = new THREE.MeshStandardMaterial({
-            color: CONFIG.materiales.pvcMaderaLiso.color,
-            roughness: CONFIG.materiales.pvcMaderaLiso.roughness,
-            metalness: 0.0,
-            side: THREE.DoubleSide
-        });
-        const matBaseLambrin = matPVCMaderaLiso;
-        const matListonLambrin = matPVCMaderaLiso;
-        const matTecaLisa = matPVCMaderaLiso;
+        const matBaseLambrin = matTKPVC;
+        const matListonLambrin = matTKPVC;
+        const matTecaLisa = matTKPVC;
         const matPVC = new THREE.MeshStandardMaterial({ color: CONFIG.materiales.pvcNegro.color, roughness: CONFIG.materiales.pvcNegro.roughness });
         const matTechoNegro = new THREE.MeshStandardMaterial({ color: CONFIG.materiales.techoNegroMate.color, metalness: CONFIG.materiales.techoNegroMate.metalness, roughness: CONFIG.materiales.techoNegroMate.roughness, side: THREE.DoubleSide });
         const matCanaleta = new THREE.MeshStandardMaterial({ color: CONFIG.materiales.canaletaZanja.color, metalness: CONFIG.materiales.canaletaZanja.metalness, roughness: CONFIG.materiales.canaletaZanja.roughness, side: THREE.DoubleSide });
@@ -454,35 +493,6 @@
 
         const v0_Suelo = [xP1, 400.0]; 
         const v4_Suelo = [400.0 * (3 / 412), 400.0]; // (2.91, 400.0)
-        const EJES = Object.freeze({
-            // Sistema único del modelo: X = Oeste→Este, Z = Norte→Sur, Y = vertical.
-            OESTE_X: 0,
-            ESTE_X: CONFIG.muroNorte.ancho,
-            NORTE_Z: 0,
-            FRENTE_COBERTIZO_Z: 400,
-            FONDO_COBERTIZO_Z: 498,
-            PISO_Y: 0
-        });
-
-        const COBERTIZO = Object.freeze({
-            xOeste: v4_Suelo[0],
-            xEste: v0_Suelo[0],
-            zFrente: EJES.FRENTE_COBERTIZO_Z,
-            zFondo: EJES.FONDO_COBERTIZO_Z,
-            get anchoFrente() { return this.xEste - this.xOeste; }
-        });
-
-        // Convención de izquierda/derecha de la puerta: vista desde el patio
-        // mirando directamente hacia la fachada del cobertizo.
-        // IZQUIERDA = menor X. Nunca se deriva de la cámara ni de la orientación visual.
-        const DIRECCION_PUERTA = Object.freeze({
-            // MASTER: la izquierda arquitectónica de la fachada del cobertizo = +X.
-            // Esta convención es absoluta; jamás se invierte según la cámara o la vista del teléfono.
-            IZQUIERDA_FACHADA_X: +1,
-            HOLGURA_MURO: 0.3, // 3 mm: mínimo práctico sin roce.
-            HOLGURA_PISO: 4.0  // 4 cm: separación inferior solicitada.
-        });
-
 
         const shapeSuelo = new THREE.Shape();
         shapeSuelo.moveTo(0, 0);                             
@@ -570,43 +580,10 @@
         const anteO = crearCaja(grosorMuro, distPH, wHO, matMuro); anteO.position.set(-grosorMuro / 2, distPH / 2, distNH + wHO / 2); muroOesteGroup.add(anteO);
         const dinO = crearCaja(grosorMuro, altoDO, wHO, matMuro); dinO.position.set(-grosorMuro / 2, distPH + altoHO + altoDO / 2, distNH + wHO / 2); muroOesteGroup.add(dinO);
         
-        // CELOSÍA ORGÁNICA: ocupa EXACTAMENTE el vano del Muro Oeste.
-        // Está contenida en el mismo plano del muro; no se crea como una pantalla perpendicular.
-        function crearCelosiaOrganicaVanoOeste() {
-            const panelW = wHO;
-            const panelH = altoHO;
-            const panelD = 3.0;
-            const panel = new THREE.Shape();
-            panel.moveTo(0, 0);
-            panel.lineTo(panelW, 0);
-            panel.lineTo(panelW, panelH);
-            panel.lineTo(0, panelH);
-            panel.closePath();
-
-            const huecos = [
-                [28, 72, 10, 15, -0.10], [58, 32, 16, 11, 0.18], [91, 69, 13, 19, 0.06],
-                [126, 43, 20, 13, -0.20], [163, 75, 11, 15, 0.12], [196, 31, 15, 10, -0.08],
-                [229, 68, 21, 14, 0.15], [265, 38, 12, 18, -0.12], [294, 77, 17, 11, 0.10]
-            ];
-            huecos.forEach(([cx, cy, rx, ry, rot]) => {
-                const h = new THREE.Path();
-                h.absellipse(cx, cy, rx, ry, 0, Math.PI * 2, false, rot);
-                panel.holes.push(h);
-            });
-
-            const geom = new THREE.ExtrudeGeometry(panel, { depth: panelD, bevelEnabled: true, bevelThickness: 0.8, bevelSize: 0.8, bevelSegments: 2 });
-            const mesh = new THREE.Mesh(geom, matMuro);
-            // El panel conserva el eje longitudinal del Muro Oeste (local Z) y su espesor queda normal al muro (local X).
-            // Se coloca sobre la cara interior del vano, sin girarlo fuera del plano del muro.
-            mesh.rotation.y = Math.PI / 2;
-            mesh.position.set(-grosorMuro / 2, distPH, distNH + panelW);
-            mesh.castShadow = true;
-            mesh.receiveShadow = true;
-            mesh.renderOrder = 11;
-            return mesh;
-        }
-        muroOesteGroup.add(crearCelosiaOrganicaVanoOeste());
-        grupoMuroOeste.add(muroOesteGroup);
+        const vSize = CONFIG.muroOeste.vigaTamaño, vSep = CONFIG.muroOeste.vigaSeparacionAprox, numV = Math.floor((wHO - vSep) / (vSize + vSep)), sepR = (wHO - (numV * vSize)) / (numV + 1); 
+        const vigasGroup = new THREE.Group(); vigasGroup.position.set(-grosorMuro / 2, distPH + altoHO / 2, distNH);
+        for (let v = 0; v < numV; v++) { const vM = crearCaja(vSize, altoHO, vSize, matListonLambrin); vM.position.set(0, 0, sepR + (v * (vSize + sepR)) + (vSize / 2)); vigasGroup.add(vM); }
+        muroOesteGroup.add(vigasGroup); grupoMuroOeste.add(muroOesteGroup);
 
         const muroSurPtsContinuos = [
             [390, 400], [xP1, zP1], [xP2, zP2], [xP3, zP3], [xP4, zP4],
@@ -615,7 +592,7 @@
         grupoMuroSur.add(crearMuroExtruidoEnXZ(muroSurPtsContinuos, 316, matMuro));
 
         // =========================================================================
-        // COBERTIZO SUR (ZANJA DIRECTA SIN BORDES, ZOCLO SUPERIOR 10cm, BAJANTE RECTO INTERIOR DERECHO)
+        // COBERTIZO SUR (PUERTA PVC MADERA LISA, 3cm SOBRE PISO, RIEL SUPERIOR EN CONTACTO)
         // =========================================================================
         function construirCobertizoSur() {
             const nichoSurGroup = new THREE.Group();
@@ -860,88 +837,49 @@
             nichoSurGroup.add(torreGroup);
 
             // =========================================================================
+            // V6.8 — PUERTA CORREDIZA ÚNICA DE PVC MADERA LISA, AL FRENTE DEL MURO FALSO
+            // Abre hacia la izquierda y, al abrir, queda completamente delante del muro falso.
             // =========================================================================
-            // PUERTA CORREDIZA: SISTEMA DE COORDENADAS DEFINITIVO
-            // =========================================================================
-            // La hoja tiene exactamente el ancho del frente del cobertizo.
-            // Cerrada: centrada en el vano.
-            // Abierta: se desplaza SOLO hacia X negativa (izquierda), hasta quedar delante
-            // del Muro Oeste. El recorrido se calcula desde los límites reales del vano,
-            // nunca desde la cámara ni desde la posición del masterGroup.
-            const wHuecoNichoSur = COBERTIZO.anchoFrente;
-            const altoMarcoSuperior = 11.0;
-            const hPuertaCorrediza = 209.0;
-            // La hoja es 6 mm más angosta que el vano: 3 mm libres por lado.
-            const holguraMuro = DIRECCION_PUERTA.HOLGURA_MURO;
-            const wPuertaCorrediza = wHuecoNichoSur - (holguraMuro * 2);
-            const holguraPiso = DIRECCION_PUERTA.HOLGURA_PISO;
-            const zPlanoPuerta = COBERTIZO.zFrente - 3.2; // hacia el patio, delante del frente
-            const xCentroPuertaCerrada = COBERTIZO.xOeste + holguraMuro + (wPuertaCorrediza / 2);
-            // La hoja debe abandonar COMPLETAMENTE el vano hacia la izquierda de la fachada.
-            // En este modelo la izquierda arquitectónica de la fachada corresponde a +X.
-            // Al abrir, la hoja se desplaza su propio ancho + 3 mm: queda 3 mm separada
-            // de la pared de tope, sin roce, manteniendo +X como izquierda arquitectónica.
-            const xCentroPuertaAbierta = xCentroPuertaCerrada + DIRECCION_PUERTA.IZQUIERDA_FACHADA_X * (wPuertaCorrediza + holguraMuro);
+            const wHuecoNichoSur = v0[0] - v4[0];
+            const wPuertaCorrediza = wHuecoNichoSur - 2.0;
+            const zPlanoPuerta = 396.8; // 3.2 cm delante del plano frontal Z=400
 
-            // Friso superior fijo, alineado al frente real del cobertizo.
-            const frisoSuperior = crearCaja(wHuecoNichoSur + 2.0, altoMarcoSuperior, 2.5, matTecaLisa);
-            frisoSuperior.position.set(xCentroPuertaCerrada, 210.0 + altoMarcoSuperior / 2, zPlanoPuerta);
-            nichoSurGroup.add(frisoSuperior);
-
-            // Hoja lisa de PVC/Teca: sin louver.
-            function crearPuertaLisaTeca(ancho, alto) {
-                const g = new THREE.Group();
-                const marco = crearCaja(ancho, alto, 3.0, matTecaLisa);
-                g.add(marco);
-
-                // Rejilla de ventilación en esquina superior derecha.
-                const rejW = Math.min(28, ancho * 0.18);
-                const rejH = 10;
-                const rejillaBase = crearCaja(rejW, rejH, 0.8, matAceroOscuro);
-                rejillaBase.position.set(ancho / 2 - rejW / 2 - 9, (alto - 25) - alto / 2, -1.7);
-                g.add(rejillaBase);
-                for (let i = 0; i < 5; i++) {
-                    const lama = crearCaja(rejW - 3, 1.0, 1.0, matAcero);
-                    lama.position.set(ancho / 2 - rejW / 2 - 9, (alto - 21.5 - i * 2.0) - alto / 2, -2.3);
-                    g.add(lama);
-                }
-
-                const manija = crearCaja(2.4, 11, 1.8, matAceroOscuro);
-                manija.position.set(-ancho / 2 + 9, (alto * 0.48) - alto / 2, -2.2);
-                g.add(manija);
-                return g;
-            }
-
+            // Hoja corrediza única.
             const puertaCorredizaGroup = new THREE.Group();
-            // La hoja arranca exactamente 4 cm sobre el piso/zócalo.
-            puertaCorredizaGroup.position.set(xCentroPuertaCerrada, holguraPiso, zPlanoPuerta);
+            puertaCorredizaGroup.position.set((v0[0] + v4[0]) / 2, 0, zPlanoPuerta);
 
-            const hojaCorrediza = crearPuertaLisaTeca(wPuertaCorrediza, hPuertaCorrediza);
-            hojaCorrediza.position.set(0, hPuertaCorrediza / 2, 0);
+            // Hoja única de PVC madera lisa con veta continua.
+            // No es louver/listón. Queda 3 cm sobre el piso y llega directamente al riel.
+            const hPuertaCorrediza = 209.0;
+            const yBasePuerta = 3.0;
+            const hojaCorrediza = crearCaja(
+                wPuertaCorrediza,
+                hPuertaCorrediza,
+                2.0,
+                matTecaLisa
+            );
+            hojaCorrediza.position.set(0, yBasePuerta + hPuertaCorrediza / 2, 0);
+            hojaCorrediza.castShadow = true;
+            hojaCorrediza.receiveShadow = true;
+            hojaCorrediza.position.set(0, 0, 0);
             puertaCorredizaGroup.add(hojaCorrediza);
 
-            // RIEL FIJO: longitud EXACTA = 2 × ancho de la puerta.
-            // No se mueve con la hoja. Se extiende hacia la izquierda arquitectónica (+X).
-            const largoRiel = wPuertaCorrediza * 2.0;
-            const xCentroRiel = xCentroPuertaCerrada + DIRECCION_PUERTA.IZQUIERDA_FACHADA_X * (wPuertaCorrediza / 2);
-            const zRiel = zPlanoPuerta;
-            const yRiel = getRoofBottomAtZ(zRiel) + 3.5; // dentro del espesor de la cubierta
+            // Riel superior y dos carros visibles discretamente.
+            const largoRiel = wPuertaCorrediza + 190.0;
+            const rielCorredizo = crearCaja(largoRiel, 2.2, 2.4, matAceroOscuro);
+            // El borde inferior del riel coincide exactamente con la parte superior de la puerta.
+            const yTopPuerta = yBasePuerta + hPuertaCorrediza;
+            rielCorredizo.position.set(-92.0, yTopPuerta + 1.1, -1.0);
+            puertaCorredizaGroup.add(rielCorredizo);
 
-            // RIEL FIJO: pertenece a la cubierta, NO a la hoja móvil.
-            // Su recorrido cubre la posición cerrada y la posición abierta hacia la izquierda arquitectónica.
-            const rielCorredizo = crearCaja(largoRiel, 1.8, 2.2, matAceroOscuro);
-            rielCorredizo.position.set(xCentroRiel, yRiel, zRiel);
-            nichoSurGroup.add(rielCorredizo);
+            const carroIzq = crearCaja(5.0, 2.0, 5.0, matAceroOscuro);
+            carroIzq.position.set(-wPuertaCorrediza * 0.31, yTopPuerta + 0.05, -1.0);
+            puertaCorredizaGroup.add(carroIzq);
+            const carroDer = crearCaja(5.0, 2.0, 5.0, matAceroOscuro);
+            carroDer.position.set(wPuertaCorrediza * 0.31, yTopPuerta + 0.05, -1.0);
+            puertaCorredizaGroup.add(carroDer);
 
-            // Carros: sí pertenecen a la hoja y se desplazan con ella, dentro del espesor de la cubierta.
-            [-0.31, 0.31].forEach(f => {
-                const carro = crearCaja(4.5, 1.8, 4.5, matAceroOscuro);
-                // Coordenadas LOCALES de la hoja: nunca usar la Y absoluta del riel dentro del grupo móvil.
-                carro.position.set(f * wPuertaCorrediza * 0.31, hPuertaCorrediza - 1.8, -1.0);
-                puertaCorredizaGroup.add(carro);
-            });
-
-            const hitboxPuertaCorrediza = crearCaja(wPuertaCorrediza, hPuertaCorrediza, 5.0, new THREE.MeshBasicMaterial({ visible: false }));
+            const hitboxPuertaCorrediza = crearCaja(wPuertaCorrediza, hPuertaCorrediza, 4.5, new THREE.MeshBasicMaterial({ visible: false }));
             hitboxPuertaCorrediza.position.set(0, hPuertaCorrediza / 2, 0);
             puertaCorredizaGroup.add(hitboxPuertaCorrediza);
             nichoSurGroup.add(puertaCorredizaGroup);
@@ -950,8 +888,9 @@
                 tipo: 'puerta_corrediza',
                 grupo: puertaCorredizaGroup,
                 abierto: false,
-                posX_cerrado: xCentroPuertaCerrada,
-                posX_abierto: xCentroPuertaAbierta
+                posX_cerrado: (v0[0] + v4[0]) / 2,
+                // Desplazamiento suficiente para despejar todo el vano y quedar frente al muro falso.
+                posX_abierto: (v0[0] + v4[0]) / 2 - wPuertaCorrediza - 4.0
             };
             objetosInteractivos.push(hitboxPuertaCorrediza);
 
@@ -961,15 +900,16 @@
         construirCobertizoSur();
 
         function crearPanelLambrinContinuo(ancho, alto, offsetGlobalX = 0) {
-            // V6.7: frente de gabinete en PVC madera LISA.
-            // Se conserva el nombre de la función para no romper la lógica interactiva,
-            // pero ya no se generan listones ni entrecalles.
-            const group = new THREE.Group();
-            const panel = new THREE.Mesh(new THREE.BoxGeometry(ancho, alto, 1.8), matPVCMaderaLiso);
-            panel.castShadow = true;
-            panel.receiveShadow = true;
-            panel.position.set(0, 0, 0.9);
-            group.add(panel);
+            const group = new THREE.Group(), anchoListon = 3.2, entrecalle = 1.2, grosorBase = 1.0, profListon = 0.8, paso = anchoListon + entrecalle;
+            const base = new THREE.Mesh(new THREE.BoxGeometry(ancho, alto, grosorBase), matBaseLambrin); base.castShadow = true; base.receiveShadow = true; base.position.set(0, 0, grosorBase / 2); group.add(base);
+            const kStart = Math.floor((offsetGlobalX - anchoListon) / paso) - 2, kEnd = Math.ceil((offsetGlobalX + ancho + paso) / paso) + 2;
+            for (let k = kStart; k <= kEnd; k++) {
+                const overlapLeft = Math.max(k * paso, offsetGlobalX), overlapRight = Math.min((k * paso) + anchoListon, offsetGlobalX + ancho);
+                if (overlapRight > overlapLeft + 0.01) {
+                    const liston = new THREE.Mesh(new THREE.BoxGeometry(overlapRight - overlapLeft, alto, profListon), matListonLambrin);
+                    liston.castShadow = true; liston.receiveShadow = true; liston.position.set(((overlapLeft + overlapRight) / 2) - (offsetGlobalX + ancho / 2), 0, grosorBase + profListon / 2); group.add(liston);
+                }
+            }
             return group;
         }
 
@@ -1285,9 +1225,7 @@
 
         construirModuloIzquierdo(); construirModuloAsador(); construirModuloDerecho(); construirNichoNorte();
         
-        // IMPORTANTE: masterGroup solo centra el modelo para la cámara.
-        // Ninguna geometría usa este offset para decidir izquierda/derecha.
-        masterGroup.position.x = -CONFIG.muroNorte.ancho / 2;
+        masterGroup.position.x = -CONFIG.muroNorte.ancho / 2; 
         masterGroup.position.z = 0;
 
         const btnToggleMuros = document.getElementById('btn-toggle-muros'), menuMuros = document.getElementById('menu-muros');
@@ -1342,7 +1280,7 @@
                 <line x1="${pNE[0]}" y1="${pNE[1] + 110 * scale}" x2="${pNE[0]}" y2="${pNE[1] + (110 + 265) * scale}" stroke="#0284c7" stroke-width="5" />
                 <text x="${pNE[0] + 14}" y="${pNE[1] + (110 + 132) * scale}" fill="#0284c7" font-size="9" font-weight="bold" transform="rotate(90, ${pNE[0] + 14}, ${pNE[1] + (110 + 132) * scale})" text-anchor="middle">VENTANAL 265 cm</text>
                 <line x1="${pNO[0]}" y1="${pNO[1] + 100 * scale}" x2="${pNO[0] + 3 * scale}" y2="${pNO[1] + (100 + 300) * scale}" stroke="#d97706" stroke-width="4" stroke-dasharray="4 2" />
-                <text x="${pNO[0] - 14}" y="${pNO[1] + (100 + 150) * scale}" fill="#d97706" font-size="9" font-weight="bold" transform="rotate(-90, ${pNO[0] - 14}, ${pNO[1] + (100 + 150) * scale})" text-anchor="middle">CELOSÍA ORGÁNICA DE ESTUCO 300 cm</text>
+                <text x="${pNO[0] - 14}" y="${pNO[1] + (100 + 150) * scale}" fill="#d97706" font-size="9" font-weight="bold" transform="rotate(-90, ${pNO[0] - 14}, ${pNO[1] + (100 + 150) * scale})" text-anchor="middle">CELOSÍA VIGAS 300 cm</text>
                 <text x="${pNO[0] + (390 * scale) / 2}" y="${pNO[1] - 10}" fill="#0f172a" font-size="11" font-weight="bold" text-anchor="middle">MURO NORTE: 390 cm</text>
                 <text x="${pES[0] + 28}" y="${pNO[1] + (400 * scale) / 2}" fill="#0f172a" font-size="11" font-weight="bold" transform="rotate(90, ${pES[0] + 28}, ${pNO[1] + (400 * scale) / 2})" text-anchor="middle">MURO ESTE: 400 cm</text>
                 <text x="${(pES[0] + pS1[0]) / 2}" y="${pS1[1] - 8}" fill="#0f172a" font-size="10" font-weight="bold" text-anchor="middle">Muro Falso Recto 90°: 215 cm</text>
@@ -1353,7 +1291,7 @@
             </svg>`;
         }
         function generarDibujoElevacion() {
-            const w = CONFIG.muroNorte.ancho, h = 316, cLambrin = "#9b6031", cBaseLambrin = "#5c3619", cAcero = "#8b9295", cMicrocemento = "#2b2d30", cNegro = "#1a1a1a";
+            const w = CONFIG.muroNorte.ancho, h = 316, cLambrin = "#9e6332", cBaseLambrin = "#5c3619", cAcero = "#8b9295", cMicrocemento = "#2b2d30", cNegro = "#1a1a1a";
             let svg = `<svg viewBox="0 0 ${w} ${h}" width="100%" height="320" style="background:#ffffff; border:1px solid #cbd5e1; border-radius:8px;"><rect x="0" y="0" width="${w}" height="${h}" fill="#f8fafc" stroke="#cbd5e1" stroke-width="2"/>`;
             const yBase = h - CONFIG.barra.altoZocalo;
             // Fondo de estuco mineral beige; el lambrín mural ya no se representa.
@@ -1375,7 +1313,7 @@
 
         const ITEMS_COTIZACION = [
             { cat: "Estructura y Muebles", item: "Estructura interna en PVC foam / perfilería impermeable", cant: "1 Global", pu: 7800, id: "pvc_cuerpo" },
-            { cat: "Estructura y Muebles", item: "Puerta corrediza lisa de PVC madera para Cobertizo Sur, con riel superior fijo de 2× el ancho de la puerta", cant: "1 Pza", pu: 7200, id: "puerta_corrediza" },
+            { cat: "Estructura y Muebles", item: "Puerta corrediza de PVC madera lisa con veta tipo parota para Cobertizo Sur, con riel superior en contacto directo", cant: "1 Pza", pu: 7200, id: "puerta_corrediza" },
             { cat: "Muro Falso", item: "Bastidor acero galvanizado + Panel Durock 1/2'' + Basecoat e impermeable en Muro 215 a 90°", cant: "6.8 m²", pu: 1150, id: "muro_durock" },
             { cat: "Cubiertas", item: "Cubiertas y costados de Microcemento negro mate 6cm", cant: "4.2 m²", pu: 1650, id: "microcemento" },
             { cat: "Cubiertas", item: "Techo negro mate con zanja embutida de captación y bajante interior al foso", cant: "1 Pza", pu: 6200, id: "techo_nicho_sur" },
@@ -1406,7 +1344,7 @@
                             <li><strong>Muro Este:</strong> 400 cm totales (Ventanal de 265 cm).</li>
                             <li><strong>Muro Oeste:</strong> 487 cm de longitud; altura total 260 cm, con 100 cm de muro inferior + 100 cm de vano + 60 cm de muro superior; vano de 300 cm.</li>
                             <li><strong>Muro Sur 1 (Muro Falso Recto a 90°):</strong> Tramo de 215 cm de longitud ejecutado en bastidor de acero galvanizado con panel de cemento Durock de 1/2''.</li>
-                            <li><strong>Cobertizo Sur (Lavandería):</strong> Muro Este de 98 cm, Muro Oeste de 87 cm, Fondo de 148 cm y Chaflán de 32 cm. Puerta corrediza lisa única de PVC madera, abre hacia la izquierda arquitectónica (+X), con rejilla de ventilación, 4 cm libres sobre piso y riel fijo de 2× el ancho de la puerta, cubierta negra mate con zanja embutida directa y bajante vertical recto interior derecho (Oeste), y Torre de lavado negra (5 cm al frente, 10 cm atrás, 2.5 cm a la izquierda).</li>
+                            <li><strong>Cobertizo Sur (Lavandería):</strong> Muro Este de 98 cm, Muro Oeste de 87 cm, Fondo de 148 cm y Chaflán de 32 cm. Puerta corrediza única de PVC madera lisa con veta tipo parota que abre hacia la izquierda, queda por delante del muro falso, con 3 cm libres sobre el piso y riel superior en contacto directo con la puerta, cubierta negra mate con zanja embutida directa y bajante vertical recto interior derecho (Oeste), y Torre de lavado negra (5 cm al frente, 10 cm atrás, 2.5 cm a la izquierda).</li>
                         </ul>
                     </div>
                     <div class="data-section">
