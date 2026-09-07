@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-    <title>Visualizador 3D Interactivo - Patio Mineral Orgánico V6.3 · Sistema de Coordenadas</title>
+    <title>Visualizador 3D Interactivo - Patio Mineral Orgánico V6.6 MASTER · Coordenadas Arquitectónicas</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; overflow: hidden; background-color: #5c7e9c; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; touch-action: none; user-select: none; }
@@ -76,6 +76,11 @@
     </script>
 </head>
 <body>
+<style>
+#version-identificador{position:fixed;top:14px;left:14px;z-index:99999;max-width:calc(100vw - 28px);padding:10px 16px;border:2px solid rgba(255,255,255,.28);border-radius:14px;background:rgba(10,20,38,.94);color:#fff;font:800 15px/1.25 Arial,sans-serif;letter-spacing:.4px;box-shadow:0 6px 20px rgba(0,0,0,.28);pointer-events:none;}
+</style>
+<div id="version-identificador">V6.6 MASTER • COORDENADAS FIJAS • CELOSÍA EN VANO • PUERTA + RIEL CORRECTOS</div>
+
 
     <div id="canvas-container"></div>
     <div id="instrucciones">Toca la puerta corrediza, asador, cajones y persiana.<br>Arrastra 360° para rotar | Pellizca / Rueda para zoom</div>
@@ -161,7 +166,7 @@
         const hNichoTotal = 202; 
         const topH = CONFIG.barra.grosorCubierta, topD = CONFIG.barra.profundidadTotal, anguloPendiente = Math.atan(CONFIG.barra.pendienteCubierta / topD);
 
-        // V6.5 — ajuste de plano de celosía y accesorios de puerta: se conserva íntegra la arquitectura de carga de V6/V6.1.
+        // V6.6 MASTER — sistema de coordenadas arquitectónicas: celosía en vano, puerta y riel independientes: se conserva íntegra la arquitectura de carga de V6/V6.1.
         // Solo se optimiza lo que no altera geometría, interacción ni dependencias.
         const container = document.getElementById('canvas-container');
         // V6 AUDITORÍA / REFACTOR:
@@ -464,8 +469,8 @@
         // mirando directamente hacia la fachada del cobertizo.
         // IZQUIERDA = menor X. Nunca se deriva de la cámara ni de la orientación visual.
         const DIRECCION_PUERTA = Object.freeze({
-            // En la fachada del cobertizo, 'izquierda' arquitectónica = +X.
-            // Esta convención es fija y no depende de la cámara.
+            // MASTER: la izquierda arquitectónica de la fachada del cobertizo = +X.
+            // Esta convención es absoluta; jamás se invierte según la cámara o la vista del teléfono.
             IZQUIERDA_FACHADA_X: +1
         });
 
@@ -585,7 +590,7 @@
             // El panel conserva el eje longitudinal del Muro Oeste (local Z) y su espesor queda normal al muro (local X).
             // Se coloca sobre la cara interior del vano, sin girarlo fuera del plano del muro.
             mesh.rotation.y = Math.PI / 2;
-            mesh.position.set(-grosorMuro / 2, distPH, distNH + panelW / 2);
+            mesh.position.set(-grosorMuro / 2, distPH, distNH + panelW);
             mesh.castShadow = true;
             mesh.receiveShadow = true;
             mesh.renderOrder = 11;
@@ -910,11 +915,13 @@
             const zRiel = zPlanoPuerta;
             const yRiel = getRoofBottomAtZ(zRiel) + 3.5; // dentro del espesor de la cubierta
 
+            // RIEL FIJO: pertenece a la cubierta, NO a la hoja móvil.
+            // Su recorrido cubre la posición cerrada y la posición abierta hacia la izquierda arquitectónica.
             const rielCorredizo = crearCaja(largoRiel, 1.8, 2.2, matAceroOscuro);
-            rielCorredizo.position.set(xCentroRiel - xCentroPuertaCerrada, yRiel, -1.0);
-            puertaCorredizaGroup.add(rielCorredizo);
+            rielCorredizo.position.set(xCentroRiel, yRiel, zRiel);
+            nichoSurGroup.add(rielCorredizo);
 
-            // Carros pequeños ocultos visualmente dentro de la cubierta.
+            // Carros: sí pertenecen a la hoja y se desplazan con ella, dentro del espesor de la cubierta.
             [-0.31, 0.31].forEach(f => {
                 const carro = crearCaja(4.5, 1.8, 4.5, matAceroOscuro);
                 carro.position.set(f * wPuertaCorrediza, yRiel - 2.0, -1.0);
