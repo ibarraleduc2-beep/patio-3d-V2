@@ -837,7 +837,7 @@
             nichoSurGroup.add(torreGroup);
 
             // =========================================================================
-            // V6.8 — PUERTA CORREDIZA ÚNICA DE PVC MADERA LISA, AL FRENTE DEL MURO FALSO
+            // V6.8.1 — PUERTA CORREDIZA ÚNICA DE PVC MADERA LISA, AL FRENTE DEL MURO FALSO
             // Abre hacia la izquierda y, al abrir, queda completamente delante del muro falso.
             // =========================================================================
             const wHuecoNichoSur = v0[0] - v4[0];
@@ -858,29 +858,29 @@
                 2.0,
                 matTecaLisa
             );
+            // 3 cm sobre el piso.
             hojaCorrediza.position.set(0, yBasePuerta + hPuertaCorrediza / 2, 0);
             hojaCorrediza.castShadow = true;
             hojaCorrediza.receiveShadow = true;
-            hojaCorrediza.position.set(0, 0, 0);
             puertaCorredizaGroup.add(hojaCorrediza);
 
-            // Riel superior y dos carros visibles discretamente.
-            const largoRiel = wPuertaCorrediza + 190.0;
-            const rielCorredizo = crearCaja(largoRiel, 2.2, 2.4, matAceroOscuro);
-            // El borde inferior del riel coincide exactamente con la parte superior de la puerta.
+            // RIEL FIJO: no se mueve con la hoja. La cara inferior queda exactamente a la altura de la cara superior de la puerta.
             const yTopPuerta = yBasePuerta + hPuertaCorrediza;
-            rielCorredizo.position.set(-92.0, yTopPuerta + 1.1, -1.0);
-            puertaCorredizaGroup.add(rielCorredizo);
+            const largoRiel = wPuertaCorrediza * 2.0 + 8.0;
+            const rielCorredizo = crearCaja(largoRiel, 2.2, 2.4, matAceroOscuro);
+            rielCorredizo.position.set((v0[0] + v4[0]) / 2 - wPuertaCorrediza / 2, yTopPuerta + 1.1, zPlanoPuerta - 1.0);
+            nichoSurGroup.add(rielCorredizo);
 
+            // Carros alineados con la hoja cerrada.
             const carroIzq = crearCaja(5.0, 2.0, 5.0, matAceroOscuro);
-            carroIzq.position.set(-wPuertaCorrediza * 0.31, yTopPuerta + 0.05, -1.0);
-            puertaCorredizaGroup.add(carroIzq);
+            carroIzq.position.set((v0[0] + v4[0]) / 2 - wPuertaCorrediza * 0.31, yTopPuerta + 0.05, zPlanoPuerta - 1.0);
+            nichoSurGroup.add(carroIzq);
             const carroDer = crearCaja(5.0, 2.0, 5.0, matAceroOscuro);
-            carroDer.position.set(wPuertaCorrediza * 0.31, yTopPuerta + 0.05, -1.0);
-            puertaCorredizaGroup.add(carroDer);
+            carroDer.position.set((v0[0] + v4[0]) / 2 + wPuertaCorrediza * 0.31, yTopPuerta + 0.05, zPlanoPuerta - 1.0);
+            nichoSurGroup.add(carroDer);
 
             const hitboxPuertaCorrediza = crearCaja(wPuertaCorrediza, hPuertaCorrediza, 4.5, new THREE.MeshBasicMaterial({ visible: false }));
-            hitboxPuertaCorrediza.position.set(0, hPuertaCorrediza / 2, 0);
+            hitboxPuertaCorrediza.position.set(0, yBasePuerta + hPuertaCorrediza / 2, 0);
             puertaCorredizaGroup.add(hitboxPuertaCorrediza);
             nichoSurGroup.add(puertaCorredizaGroup);
 
@@ -900,17 +900,12 @@
         construirCobertizoSur();
 
         function crearPanelLambrinContinuo(ancho, alto, offsetGlobalX = 0) {
-            const group = new THREE.Group(), anchoListon = 3.2, entrecalle = 1.2, grosorBase = 1.0, profListon = 0.8, paso = anchoListon + entrecalle;
-            const base = new THREE.Mesh(new THREE.BoxGeometry(ancho, alto, grosorBase), matBaseLambrin); base.castShadow = true; base.receiveShadow = true; base.position.set(0, 0, grosorBase / 2); group.add(base);
-            const kStart = Math.floor((offsetGlobalX - anchoListon) / paso) - 2, kEnd = Math.ceil((offsetGlobalX + ancho + paso) / paso) + 2;
-            for (let k = kStart; k <= kEnd; k++) {
-                const overlapLeft = Math.max(k * paso, offsetGlobalX), overlapRight = Math.min((k * paso) + anchoListon, offsetGlobalX + ancho);
-                if (overlapRight > overlapLeft + 0.01) {
-                    const liston = new THREE.Mesh(new THREE.BoxGeometry(overlapRight - overlapLeft, alto, profListon), matListonLambrin);
-                    liston.castShadow = true; liston.receiveShadow = true; liston.position.set(((overlapLeft + overlapRight) / 2) - (offsetGlobalX + ancho / 2), 0, grosorBase + profListon / 2); group.add(liston);
-                }
-            }
-            return group;
+            // PVC madera lisa con veta continua: SIN listones, SIN duelas, SIN divisiones verticales.
+            const panel = crearCaja(ancho, alto, 2.0, matTKPVC);
+            panel.castShadow = true;
+            panel.receiveShadow = true;
+            panel.position.set(0, alto / 2, 0);
+            return panel;
         }
 
         const posX_Pier0 = 0, posX_ModIzq = posX_Pier0 + grosorPier, posX_ModAsador = posX_ModIzq + CONFIG.modulos.izquierdo.ancho, posX_ModDer = posX_ModAsador + CONFIG.modulos.asador.ancho, posX_PierNichoIzq = posX_ModDer + CONFIG.modulos.derecho.ancho, posX_NichoNorte = posX_PierNichoIzq + grosorPier, posX_PierNichoDer = posX_NichoNorte + CONFIG.modulos.nichoNorte.ancho; 
