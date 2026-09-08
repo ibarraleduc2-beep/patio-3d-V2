@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-    <title>Visualizador 3D Interactivo - Patio Mineral Orgánico V6.8</title>
+    <title>Visualizador 3D Interactivo - Patio Mineral Orgánico INDEX 10</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; overflow: hidden; background-color: #5c7e9c; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; touch-action: none; user-select: none; }
         #canvas-container { width: 100vw; height: 100vh; display: block; cursor: grab; }
         #canvas-container:active { cursor: grabbing; }
+        #version-indicator { position: fixed; top: 12px; left: 12px; z-index: 30; background: rgba(15,23,42,0.82); color: #ffffff; padding: 5px 9px; border-radius: 10px; font-size: 10px; font-weight: 800; letter-spacing: 0.5px; pointer-events: none; }
 
         #instrucciones {
             position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
@@ -78,6 +79,7 @@
 <body>
 
     <div id="canvas-container"></div>
+    <div id="version-indicator">INDEX 10</div>
     <div id="instrucciones">Toca la puerta corrediza, asador, cajones y persiana.<br>Arrastra 360° para rotar | Pellizca / Rueda para zoom</div>
 
     <div id="ui-muros-container">
@@ -570,9 +572,9 @@
 
         // Muro Oeste V5.6: 100 cm abajo + 100 cm vano + 60 cm arriba = 260 cm total.
         const muroOesteGroup = new THREE.Group(); muroOesteGroup.rotation.y = Math.atan2(3, 412); 
-        const distNH = CONFIG.muroOeste.distanciaNorteHueco; // 100
-        const wHO = 400; // vano de celosía extendido 100 cm hacia Norte (+Z)
-        const distSH = Math.max(0, CONFIG.muroOeste.largoTotal - (distNH + wHO));
+        const distNH = 0; // Extensión de 100 cm hacia Norte (-Z): el vano ahora inicia en Z=0.
+        const wHO = 400; // Vano total: 300 cm originales + 100 cm hacia Norte (-Z).
+        const distSH = CONFIG.muroOeste.largoTotal - (distNH + wHO); // 87 cm restantes hacia Sur.
         const distPH = CONFIG.muroOeste.distanciaPisoHueco, altoHO = CONFIG.muroOeste.altoHueco, altoDO = CONFIG.muroOeste.alto - (distPH + altoHO); 
         
         const muroON = crearCaja(grosorMuro, CONFIG.muroOeste.alto, distNH, matMuro); muroON.position.set(-grosorMuro / 2, CONFIG.muroOeste.alto / 2, distNH / 2); muroOesteGroup.add(muroON);
@@ -597,8 +599,8 @@
             ];
 
             // Redistribuye el mismo patrón sobre los 400 cm completos del vano.
-            // La extensión de 100 cm queda hacia Norte (+Z); no se modifica el espesor
-            // ni la orientación de la celosía.
+            // El Norte del proyecto es -Z. El vano se extendió desde Z=100 hasta Z=0;
+            // por eso el patrón se reparte en los 400 cm completos sin dejar la extensión tapada.
             const factorDistribucionX = ancho / 300.0;
             perforaciones.forEach(([cx, cy, rx, ry, variacion]) => {
                 cx *= factorDistribucionX;
@@ -876,7 +878,7 @@
 
             // =========================================================================
             // V6.8.1 — PUERTA CORREDIZA ÚNICA DE PVC MADERA LISA, AL FRENTE DEL MURO FALSO
-            // Abre hacia la izquierda y, al abrir, queda completamente delante del muro falso.
+            // Abre hacia Este (+X) y, al abrir, queda completamente delante del muro falso.
             // =========================================================================
             const wHuecoNichoSur = v0[0] - v4[0];
             const wPuertaCorrediza = wHuecoNichoSur - 2.0;
@@ -909,11 +911,14 @@
             hojaCorrediza.receiveShadow = true;
             puertaCorredizaGroup.add(hojaCorrediza);
 
-            // RIEL FIJO: no se mueve con la hoja. Su cara inferior toca exactamente la cara superior de la puerta.
+            // RIEL FIJO: no se mueve con la hoja. Su cara inferior toca exactamente la cara superior de la puerta
+            // y su cara superior llega hasta el intradós del techo para cerrar completamente el paso de lluvia.
             const yTopPuerta = yBasePuerta + hPuertaCorrediza;
+            const yTechoSobreRiel = getRoofBottomAtZ(zPlanoPuerta);
+            const alturaRielHastaTecho = Math.max(0.5, yTechoSobreRiel - yTopPuerta);
             const largoRiel = wPuertaCorrediza * 2.0 + 8.0;
-            const rielCorredizo = crearCaja(largoRiel, altoRielCorredizo, 2.4, matAceroOscuro);
-            rielCorredizo.position.set((v0[0] + v4[0]) / 2 + (wPuertaCorrediza + 4.0) / 2, yTopPuerta + altoRielCorredizo / 2, zPlanoPuerta);
+            const rielCorredizo = crearCaja(largoRiel, alturaRielHastaTecho, 2.4, matAceroOscuro);
+            rielCorredizo.position.set((v0[0] + v4[0]) / 2 + (wPuertaCorrediza + 4.0) / 2, yTopPuerta + alturaRielHastaTecho / 2, zPlanoPuerta);
             nichoSurGroup.add(rielCorredizo);
 
             // Pocket al Este: el frente queda delante de la hoja abierta y el dintel
@@ -922,8 +927,10 @@
             const grosorFrentePocket = 2.0;
             const separacionPocket = 0.1;
             const zFrentePocket = zPlanoPuerta - (grosorFrentePocket / 2) - 1.0 - separacionPocket;
-            const muroFrentePocket = crearCaja(anchoPocket, hInteriorCloset, grosorFrentePocket, matMuro);
-            muroFrentePocket.position.set(v0[0] + anchoPocket / 2, hInteriorCloset / 2, zFrentePocket);
+            const yTechoFrentePocket = getRoofBottomAtZ(zFrentePocket);
+            const hFrentePocket = yTechoFrentePocket + 0.2;
+            const muroFrentePocket = crearCaja(anchoPocket, hFrentePocket, grosorFrentePocket, matMuro);
+            muroFrentePocket.position.set(v0[0] + anchoPocket / 2, hFrentePocket / 2, zFrentePocket);
             nichoSurGroup.add(muroFrentePocket);
             const dintelPocket = crearCaja(largoRiel, altoRielCorredizo, grosorFrentePocket, matMuro);
             dintelPocket.position.set((v0[0] + v4[0]) / 2 + (wPuertaCorrediza + 4.0) / 2, yTopPuerta + altoRielCorredizo / 2, zFrentePocket);
@@ -933,11 +940,12 @@
             // entre el frente falso y el plano de la puerta. Se integra con la coronación
             // del frente y no altera el recorrido de la hoja.
             const grosorCierreSuperiorPocket = 2.0;
-            const profundidadCierreSuperiorPocket = Math.abs(zPlanoPuerta - zFrentePocket) + 0.4;
+            const profundidadCierreSuperiorPocket = Math.abs(zPlanoPuerta - zFrentePocket) + 0.6;
+            const yCierreSuperiorPocket = Math.max(yTechoFrentePocket, yTechoSobreRiel) - grosorCierreSuperiorPocket / 2 + 0.2;
             const cierreSuperiorPocket = crearCaja(anchoPocket, grosorCierreSuperiorPocket, profundidadCierreSuperiorPocket, matMuro);
             cierreSuperiorPocket.position.set(
                 v0[0] + anchoPocket / 2,
-                hInteriorCloset + grosorCierreSuperiorPocket / 2,
+                yCierreSuperiorPocket,
                 (zFrentePocket + zPlanoPuerta) / 2
             );
             nichoSurGroup.add(cierreSuperiorPocket);
