@@ -580,10 +580,44 @@
         const anteO = crearCaja(grosorMuro, distPH, wHO, matMuro); anteO.position.set(-grosorMuro / 2, distPH / 2, distNH + wHO / 2); muroOesteGroup.add(anteO);
         const dinO = crearCaja(grosorMuro, altoDO, wHO, matMuro); dinO.position.set(-grosorMuro / 2, distPH + altoHO + altoDO / 2, distNH + wHO / 2); muroOesteGroup.add(dinO);
         
-        const vSize = CONFIG.muroOeste.vigaTamaño, vSep = CONFIG.muroOeste.vigaSeparacionAprox, numV = Math.floor((wHO - vSep) / (vSize + vSep)), sepR = (wHO - (numV * vSize)) / (numV + 1); 
-        const vigasGroup = new THREE.Group(); vigasGroup.position.set(-grosorMuro / 2, distPH + altoHO / 2, distNH);
-        for (let v = 0; v < numV; v++) { const vM = crearCaja(vSize, altoHO, vSize, matListonLambrin); vM.position.set(0, 0, sepR + (v * (vSize + sepR)) + (vSize / 2)); vigasGroup.add(vM); }
-        muroOesteGroup.add(vigasGroup); grupoMuroOeste.add(muroOesteGroup);
+        // Celosía orgánica de estuco integrada en el vano completo: las perforaciones
+        // atraviesan el espesor del muro y sustituyen las vigas/listones anteriores.
+        function crearCelosiaOrganicaVanoOeste(ancho, alto, espesor) {
+            const formaCelosia = new THREE.Shape();
+            formaCelosia.moveTo(0, 0);
+            formaCelosia.lineTo(ancho, 0);
+            formaCelosia.lineTo(ancho, alto);
+            formaCelosia.lineTo(0, alto);
+            formaCelosia.closePath();
+
+            const perforaciones = [
+                [20, 17, 8, 5, 0.10], [48, 13, 11, 7, -0.12], [79, 21, 7, 10, 0.16], [111, 15, 14, 6, -0.08], [145, 22, 8, 8, 0.13], [177, 14, 12, 6, -0.15], [209, 21, 7, 10, 0.11], [241, 14, 15, 7, -0.10], [276, 19, 8, 9, 0.14],
+                [18, 48, 9, 6, -0.14], [43, 56, 7, 11, 0.12], [69, 45, 13, 7, -0.09], [101, 53, 8, 9, 0.15], [131, 43, 12, 6, -0.11], [160, 55, 7, 10, 0.10], [191, 46, 13, 8, -0.16], [223, 55, 8, 11, 0.12], [254, 45, 14, 6, -0.10], [282, 56, 7, 9, 0.14],
+                [24, 82, 10, 6, 0.12], [57, 76, 8, 10, -0.13], [89, 86, 14, 6, 0.11], [122, 77, 7, 9, -0.15], [153, 86, 12, 7, 0.09], [183, 78, 9, 8, -0.11], [214, 86, 14, 6, 0.14], [248, 77, 7, 10, -0.12], [278, 85, 9, 6, 0.10]
+            ];
+
+            perforaciones.forEach(([cx, cy, rx, ry, variacion]) => {
+                const hueco = new THREE.Path();
+                const puntos = Array.from({ length: 10 }, (_, i) => {
+                    const angulo = (i / 10) * Math.PI * 2;
+                    const factor = 1 + variacion * Math.sin(angulo * 3 + i * 0.7);
+                    return new THREE.Vector2(cx + Math.cos(angulo) * rx * factor, cy + Math.sin(angulo) * ry * factor);
+                });
+                hueco.moveTo(puntos[0].x, puntos[0].y);
+                hueco.splineThru([...puntos.slice(1), puntos[0]]);
+                formaCelosia.holes.push(hueco);
+            });
+
+            const geometriaCelosia = new THREE.ExtrudeGeometry(formaCelosia, { depth: espesor, bevelEnabled: true, bevelSegments: 2, bevelSize: 0.65, bevelThickness: 0.65, curveSegments: 12 });
+            const celosia = new THREE.Mesh(geometriaCelosia, matMuro);
+            celosia.rotation.y = -Math.PI / 2;
+            celosia.scale.x = (ancho + 100.0) / ancho;
+            celosia.position.set(0, distPH, distNH);
+            celosia.castShadow = true;
+            celosia.receiveShadow = true;
+            return celosia;
+        }
+        muroOesteGroup.add(crearCelosiaOrganicaVanoOeste(wHO, altoHO, grosorMuro)); grupoMuroOeste.add(muroOesteGroup);
 
         const muroSurPtsContinuos = [
             [390, 400], [xP1, zP1], [xP2, zP2], [xP3, zP3], [xP4, zP4],
@@ -849,9 +883,16 @@
             puertaCorredizaGroup.position.set((v0[0] + v4[0]) / 2, 0, zPlanoPuerta);
 
             // Hoja única de PVC madera lisa con veta continua.
-            // No es louver/listón. Queda 3 cm sobre el piso y llega directamente al riel.
-            const hPuertaCorrediza = 209.0;
-            const yBasePuerta = 3.0;
+            // No es louver/listón. Al estar delante del frente del cobertizo,
+            // la base se referencia al piso principal del patio y conserva 3 cm reales.
+            const tPisoPuerta = Math.max(0, Math.min(1, (zPlanoPuerta - v0[1]) / profundidadEscalon));
+            const yPisoPuerta = zPlanoPuerta <= v0[1]
+                ? sueloPatio.position.y
+                : hEscalonTrasero - (caidaFrontal * tPisoPuerta);
+            const yBasePuerta = yPisoPuerta + 3.0;
+            const altoRielCorredizo = 2.2;
+            const yInferiorRiel = hInteriorCloset - altoRielCorredizo;
+            const hPuertaCorrediza = yInferiorRiel - yBasePuerta;
             const hojaCorrediza = crearCaja(
                 wPuertaCorrediza,
                 hPuertaCorrediza,
@@ -864,12 +905,25 @@
             hojaCorrediza.receiveShadow = true;
             puertaCorredizaGroup.add(hojaCorrediza);
 
-            // RIEL FIJO: no se mueve con la hoja. La cara inferior queda exactamente a la altura de la cara superior de la puerta.
+            // RIEL FIJO: no se mueve con la hoja. Su cara inferior toca exactamente la cara superior de la puerta.
             const yTopPuerta = yBasePuerta + hPuertaCorrediza;
             const largoRiel = wPuertaCorrediza * 2.0 + 8.0;
-            const rielCorredizo = crearCaja(largoRiel, 2.2, 2.4, matAceroOscuro);
-            rielCorredizo.position.set((v0[0] + v4[0]) / 2 - wPuertaCorrediza / 2, yTopPuerta + 1.1, zPlanoPuerta - 1.0);
+            const rielCorredizo = crearCaja(largoRiel, altoRielCorredizo, 2.4, matAceroOscuro);
+            rielCorredizo.position.set((v0[0] + v4[0]) / 2 + (wPuertaCorrediza + 4.0) / 2, yTopPuerta + altoRielCorredizo / 2, zPlanoPuerta);
             nichoSurGroup.add(rielCorredizo);
+
+            // Pocket al Este: el frente queda delante de la hoja abierta y el dintel
+            // oculta el riel fijo sin alterar el recorrido de la puerta.
+            const anchoPocket = CONFIG.muroNorte.ancho - v0[0];
+            const grosorFrentePocket = 2.0;
+            const separacionPocket = 0.1;
+            const zFrentePocket = zPlanoPuerta - (grosorFrentePocket / 2) - 1.0 - separacionPocket;
+            const muroFrentePocket = crearCaja(anchoPocket, hInteriorCloset, grosorFrentePocket, matMuro);
+            muroFrentePocket.position.set(v0[0] + anchoPocket / 2, hInteriorCloset / 2, zFrentePocket);
+            nichoSurGroup.add(muroFrentePocket);
+            const dintelPocket = crearCaja(largoRiel, altoRielCorredizo, grosorFrentePocket, matMuro);
+            dintelPocket.position.set((v0[0] + v4[0]) / 2 + (wPuertaCorrediza + 4.0) / 2, yTopPuerta + altoRielCorredizo / 2, zFrentePocket);
+            nichoSurGroup.add(dintelPocket);
 
             // Carros alineados con la hoja cerrada.
             const carroIzq = crearCaja(5.0, 2.0, 5.0, matAceroOscuro);
@@ -889,8 +943,8 @@
                 grupo: puertaCorredizaGroup,
                 abierto: false,
                 posX_cerrado: (v0[0] + v4[0]) / 2,
-                // Desplazamiento suficiente para despejar todo el vano y quedar frente al muro falso.
-                posX_abierto: (v0[0] + v4[0]) / 2 - wPuertaCorrediza - 4.0
+                // Desplazamiento suficiente para despejar todo el vano hacia el Este (+X).
+                posX_abierto: (v0[0] + v4[0]) / 2 + wPuertaCorrediza + 4.0
             };
             objetosInteractivos.push(hitboxPuertaCorrediza);
 
