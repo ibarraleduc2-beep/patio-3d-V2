@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-    <title>Visualizador 3D Interactivo - Patio Mineral Orgánico INDEX 10</title>
+    <title>Visualizador 3D Interactivo - Patio Mineral Orgánico INDEX 11</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; overflow: hidden; background-color: #5c7e9c; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; touch-action: none; user-select: none; }
@@ -79,7 +79,7 @@
 <body>
 
     <div id="canvas-container"></div>
-    <div id="version-indicator">INDEX 10</div>
+    <div id="version-indicator">INDEX 11</div>
     <div id="instrucciones">Toca la puerta corrediza, asador, cajones y persiana.<br>Arrastra 360° para rotar | Pellizca / Rueda para zoom</div>
 
     <div id="ui-muros-container">
@@ -98,7 +98,7 @@
 
     <button id="btn-ficha">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-        FICHA TÉCNICA Y COTIZADOR
+        FICHA TÉCNICA
     </button>
 
     <div id="ficha-tecnica">
@@ -700,6 +700,70 @@
             escalonCobertizo.receiveShadow = true;
             escalonCobertizo.castShadow = false;
             nichoSurGroup.add(escalonCobertizo);
+
+            // =====================================================================
+            // COLADERAS REDONDAS DEL PATIO — 3 POSICIONES INDICADAS EN INDEX 10
+            // =====================================================================
+            // Se colocan al ras del piso, como coladeras pluviales circulares.
+            // Coordenadas aproximadas traducidas de los tres círculos rojos de la referencia.
+            const posicionesColaderas = [
+                [85, 250],
+                [310, 250],
+                [250, 155]
+            ];
+            const matColadera = new THREE.MeshStandardMaterial({ color: 0x25282a, metalness: 0.88, roughness: 0.28 });
+            posicionesColaderas.forEach(([x, z]) => {
+                const base = new THREE.Mesh(new THREE.CylinderGeometry(5.0, 5.0, 0.7, 32), matColadera);
+                base.position.set(x, 0.35, z);
+                base.castShadow = true;
+                base.receiveShadow = true;
+                nichoSurGroup.add(base);
+
+                const rejilla = new THREE.Mesh(new THREE.CylinderGeometry(3.8, 3.8, 0.12, 32), matAceroOscuro);
+                rejilla.position.set(x, 0.76, z);
+                rejilla.castShadow = true;
+                nichoSurGroup.add(rejilla);
+            });
+
+            // =====================================================================
+            // PANEL DIVISOR VERTICAL CENTRAL DEL COBERTIZO DE LAVANDERÍA
+            // =====================================================================
+            // Divide el cobertizo en dos áreas iguales en planta. Sigue la pendiente
+            // del piso y del techo para no dejar una abertura superior o inferior.
+            const xDivisor = (v0[0] + v4[0]) / 2;
+            const zDivFrente = v0[1];
+            const zDivFondo = v1[1];
+            const yPisoDivFrente = hEscalonTrasero - caidaFrontal;
+            const yPisoDivFondo = hEscalonTrasero;
+            const yTechoDivFrente = getRoofBottomAtZ(zDivFrente);
+            const yTechoDivFondo = getRoofBottomAtZ(zDivFondo);
+            const tDivisor = 1.5;
+            const vertsDivisor = new Float32Array([
+                xDivisor - tDivisor / 2, yPisoDivFrente, zDivFrente,
+                xDivisor + tDivisor / 2, yPisoDivFrente, zDivFrente,
+                xDivisor + tDivisor / 2, yPisoDivFondo, zDivFondo,
+                xDivisor - tDivisor / 2, yPisoDivFondo, zDivFondo,
+                xDivisor - tDivisor / 2, yTechoDivFrente, zDivFrente,
+                xDivisor + tDivisor / 2, yTechoDivFrente, zDivFrente,
+                xDivisor + tDivisor / 2, yTechoDivFondo, zDivFondo,
+                xDivisor - tDivisor / 2, yTechoDivFondo, zDivFondo
+            ]);
+            const idxDivisor = [
+                0,1,2, 0,2,3,
+                4,6,5, 4,7,6,
+                0,4,5, 0,5,1,
+                1,5,6, 1,6,2,
+                2,6,7, 2,7,3,
+                3,7,4, 3,4,0
+            ];
+            const geomDivisor = new THREE.BufferGeometry();
+            geomDivisor.setAttribute('position', new THREE.BufferAttribute(vertsDivisor, 3));
+            geomDivisor.setIndex(idxDivisor);
+            geomDivisor.computeVertexNormals();
+            const panelDivisor = new THREE.Mesh(geomDivisor, matTecaLisa);
+            panelDivisor.castShadow = true;
+            panelDivisor.receiveShadow = true;
+            nichoSurGroup.add(panelDivisor);
 
             // Cielo raso interior plano a Y = 220 cm
             const shapePlanoCloset = new THREE.Shape();
@@ -1385,28 +1449,7 @@
             return svg;
         }
 
-        const ITEMS_COTIZACION = [
-            { cat: "Estructura y Muebles", item: "Estructura interna en PVC foam / perfilería impermeable", cant: "1 Global", pu: 7800, id: "pvc_cuerpo" },
-            { cat: "Estructura y Muebles", item: "Puerta corrediza de PVC madera lisa con veta tipo parota para Cobertizo Sur, con riel superior en contacto directo", cant: "1 Pza", pu: 7200, id: "puerta_corrediza" },
-            { cat: "Muro Falso", item: "Bastidor acero galvanizado + Panel Durock 1/2'' + Basecoat e impermeable en Muro 215 a 90°", cant: "6.8 m²", pu: 1150, id: "muro_durock" },
-            { cat: "Cubiertas", item: "Cubiertas y costados de Microcemento negro mate 6cm", cant: "4.2 m²", pu: 1650, id: "microcemento" },
-            { cat: "Cubiertas", item: "Techo negro mate con zanja embutida de captación y bajante interior al foso", cant: "1 Pza", pu: 6200, id: "techo_nicho_sur" },
-            { cat: "Equipo", item: "Asador empotrable 91cm acero inoxidable 304 con tapa", cant: "1 Pza", pu: 18500, id: "asador" },
-            { cat: "Equipo", item: "Persiana enrollable de aluminio negro hermética para Nicho Norte", cant: "1 Pza", pu: 6200, id: "persiana" },
-            { cat: "Equipo", item: "Torre de lavado y secado en color negro (lado izquierdo Cobertizo Sur)", cant: "1 Pza", pu: 24500, id: "torre_lavado" },
-            { cat: "Herrajes", item: "Rieles de extracción pesada + bisagras inox cierre suave", cant: "1 Juego", pu: 3400, id: "herrajes" },
-            { cat: "Piso y Pluvial", item: "Piso de canto rodado negro de río grande ahogado en concreto claro pulido", cant: "16.8 m²", pu: 1350, id: "piso_piedras" },
-            { cat: "Piso y Pluvial", item: "Escalón de piso de 5 cm en acabado de canto rodado, con pendiente de 1 cm hacia el frente", cant: "1 Global", pu: 2200, id: "escalon_cobertizo" },
-            { cat: "Mano de Obra", item: "Instalación, nivelación en sitio, plomería de lavandería y sellado", cant: "1 Global", pu: 13500, id: "mano_obra" }
-        ];
-        function calcularTotal() {
-            let total = 0; ITEMS_COTIZACION.forEach(item => total += (parseFloat(document.getElementById(`input_${item.id}`)?.value) || item.pu));
-            const totalEl = document.getElementById('precio-total-estimado'); if(totalEl) totalEl.innerText = `$${total.toLocaleString('es-MX', { minimumFractionDigits: 2 })} MXN`;
-        }
-        window.actualizarCotizador = calcularTotal;
-
         function poblarFicha() {
-            let filasCotizador = ITEMS_COTIZACION.map(item => `<tr><td><strong>${item.cat}</strong></td><td>${item.item}</td><td>${item.cant}</td><td><input type="number" id="input_${item.id}" class="input-costo" value="${item.pu}" oninput="actualizarCotizador()"></td></tr>`).join('');
             fichaDataContainer.innerHTML = `
                 <div class="drawing-container"><h4>1. Plano Arquitectónico en Planta</h4>${generarPlanoPlantaCompleto()}</div>
                 <div class="drawing-container"><h4>2. Esquema Técnico de Elevación Frontal</h4>${generarDibujoElevacion()}</div>
@@ -1417,31 +1460,18 @@
                             <li><strong>Muro Norte:</strong> 390 cm × 316 cm (con Nicho Norte / Refrigerador).</li>
                             <li><strong>Muro Este:</strong> 400 cm totales (Ventanal de 265 cm).</li>
                             <li><strong>Muro Oeste:</strong> 487 cm de longitud; altura total 260 cm, con 100 cm de muro inferior + 100 cm de vano + 60 cm de muro superior; vano de 300 cm.</li>
-                            <li><strong>Muro Sur 1 (Muro Falso Recto a 90°):</strong> Tramo de 215 cm de longitud ejecutado en bastidor de acero galvanizado con panel de cemento Durock de 1/2''.</li>
-                            <li><strong>Cobertizo Sur (Lavandería):</strong> Muro Este de 98 cm, Muro Oeste de 87 cm, Fondo de 148 cm y Chaflán de 32 cm. Puerta corrediza única de PVC madera lisa con veta tipo parota que abre hacia la izquierda, queda por delante del muro falso, con 3 cm libres sobre el piso y riel superior en contacto directo con la puerta, cubierta negra mate con zanja embutida directa y bajante vertical recto interior derecho (Oeste), y Torre de lavado negra (5 cm al frente, 10 cm atrás, 2.5 cm a la izquierda).</li>
+                            <li><strong>Muro Sur 1:</strong> Tramo de 215 cm de longitud ejecutado en bastidor de acero galvanizado con panel de cemento Durock de 1/2''.</li>
+                            <li><strong>Cobertizo Sur:</strong> Lavandería con puerta corrediza única de PVC madera lisa, pocket al Este, cubierta negra mate con captación pluvial y torre de lavado.</li>
                         </ul>
                     </div>
                     <div class="data-section">
-                        <h3>Desglose de Mobiliario y Acabados</h3>
+                        <h3>Elementos incorporados</h3>
                         <ul>
-                            <li><strong>Piso Principal:</strong> Canto rodado negro grande de río ahogado en concreto claro pulido con micro-relieve fotorrealista.</li>
-                            <li><strong>Encimera y Bastidores:</strong> Microcemento negro mate con 6 cm de espesor y caída pluvial.</li>
-                            <li><strong>Módulo Izq (85.5 cm):</strong> Gavetas extracción total con 4 contenedores.</li>
-                            <li><strong>Módulo Asador (91 cm):</strong> Acero inoxidable 304 con tapa.</li>
-                            <li><strong>Módulo Der (85.5 cm):</strong> 2 cajones + 2 puertas con repisa.</li>
-                            <li><strong>Nicho Norte (110 cm):</strong> Refrigerador y persiana enrollable hermética.</li>
+                            <li><strong>Coladeras:</strong> 3 coladeras pluviales redondas en el piso del patio.</li>
+                            <li><strong>Divisor:</strong> Panel vertical central dentro del cobertizo de lavandería, dividiendo el espacio en dos áreas.</li>
                         </ul>
                     </div>
-                </div>
-                <div class="drawing-container">
-                    <h4>3. Despiece y Cotizador Interactivo</h4>
-                    <div class="table-responsive">
-                        <table><thead><tr><th>Categoría</th><th>Concepto</th><th>Cantidad</th><th>Subtotal ($ MXN)</th></tr></thead>
-                        <tbody>${filasCotizador}</tbody></table>
-                    </div>
-                    <div class="cotizador-total"><span>TOTAL ESTIMADO:</span><span id="precio-total-estimado">$0.00 MXN</span></div>
                 </div>`;
-            calcularTotal();
         }
 
         btnFicha.addEventListener('click', () => { poblarFicha(); modalFicha.classList.add('active'); });
