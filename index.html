@@ -79,7 +79,7 @@
 <body>
 
     <div id="canvas-container"></div>
-    <div id="version-indicator">INDEX 16.1</div>
+    <div id="version-indicator">INDEX 16.2</div>
     <div id="instrucciones">Toca la puerta corrediza, asador, cajones y persiana.<br>Arrastra 360° para rotar | Pellizca / Rueda para zoom</div>
 
     <div id="ui-muros-container">
@@ -128,7 +128,7 @@
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-        // INDEX 16.1: corrección de arranque; tween local sin dependencia externa.
+        // INDEX 16.2: corrección de arranque; tween local sin dependencia externa.
         const TWEEN = (() => {
             const active = new Set();
             const Easing = {
@@ -703,6 +703,7 @@
             // Datos de la torre de lavado definidos antes de cualquier referencia.
             const washerW = 70, washerH = 185, washerD = 83;
             const posZ_Torre = 446.50;
+            const posX_Torre = 175.34 - 2.5 - (washerW / 2); // 137.84 cm
 
             const hTotalParedes = hInteriorCloset + profDesague;
             const yCentroMuro = hTotalParedes / 2 - profDesague;
@@ -1059,7 +1060,6 @@
             torreGroup.add(crearEscotilla3D(17.5, 14.0, washerH * 0.78));
 
             // Confinamiento milimétrico
-            const posX_Torre = 175.34 - 2.5 - (washerW / 2); // 137.84 cm
             torreGroup.position.set(posX_Torre, 0, posZ_Torre);
             nichoSurGroup.add(torreGroup);
 
