@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-    <title>Visualizador 3D Interactivo - Patio Mineral Orgánico INDEX 15</title>
+    <title>Visualizador 3D Interactivo - Patio Mineral Orgánico INDEX 15.1</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; overflow: hidden; background-color: #5c7e9c; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; touch-action: none; user-select: none; }
@@ -79,7 +79,7 @@
 <body>
 
     <div id="canvas-container"></div>
-    <div id="version-indicator">INDEX 15</div>
+    <div id="version-indicator">INDEX 15.1</div>
     <div id="instrucciones">Toca la puerta corrediza, asador, cajones y persiana.<br>Arrastra 360° para rotar | Pellizca / Rueda para zoom</div>
 
     <div id="ui-muros-container">
@@ -557,7 +557,7 @@
         const jambaDer = crearCaja(grosorMuro + 1, altoVentana, grosorMarco, matAluminio); jambaDer.position.z = tamVentana / 2 - grosorMarco / 2; ventanaGroup.add(jambaDer);
         const rielInferior = crearCaja(grosorMuro + 1, grosorMarco, tamVentana, matAluminio); rielInferior.position.y = -altoVentana / 2 + grosorMarco / 2; ventanaGroup.add(rielInferior);
         const rielSuperior = crearCaja(grosorMuro + 1, grosorMarco, tamVentana, matAluminio); rielSuperior.position.y = altoVentana / 2 - grosorMarco / 2; ventanaGroup.add(rielSuperior);
-        // INDEX 15: ventanal de 3 paneles. 1 fijo al Norte + 2 móviles.
+        // INDEX 15.1: ventanal de 3 paneles. 1 fijo al Norte + 2 móviles.
         // Los dos móviles se recorren hacia el Norte (-Z) y se apilan junto al panel fijo.
         const anchoPanel = (tamVentana - (grosorMarco * 2)) / 3;
         const altoPanelVidrio = altoVentana - (grosorMarco * 2);
