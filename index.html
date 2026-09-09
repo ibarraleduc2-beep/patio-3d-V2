@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-    <title>Visualizador 3D Interactivo - Patio Mineral Orgánico INDEX 17.0</title>
+    <title>Visualizador 3D Interactivo - Patio Mineral Orgánico INDEX 17.1</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; overflow: hidden; background-color: #5c7e9c; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; touch-action: none; user-select: none; }
@@ -82,7 +82,7 @@
 <body>
 
     <div id="canvas-container"></div>
-    <div id="version-indicator">INDEX 17.0</div>
+    <div id="version-indicator">INDEX 17.1</div>
     <div id="instrucciones">Toca la puerta corrediza, asador, cajones y persiana.<br>Arrastra 360° para rotar | Pellizca / Rueda para zoom</div>
 
     <div id="ui-muros-container">
@@ -125,7 +125,7 @@
                 const d = document.createElement('div');
                 d.className = 'load-error';
                 d.style.cssText = 'position:absolute;inset:70px 20px auto 20px;z-index:100;background:#0f172a;color:#fff;padding:18px;border-radius:14px;font:600 14px/1.45 sans-serif;text-align:center;';
-                d.textContent = 'Error de carga del visualizador. INDEX 17.0';
+                d.textContent = 'Error de carga del visualizador. INDEX 17.1';
                 c.appendChild(d);
             }
         });
@@ -135,7 +135,7 @@
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-        // INDEX 17.0: corrección de arranque; tween local sin dependencia externa.
+        // INDEX 17.1: corrección de arranque; tween local sin dependencia externa.
         const TWEEN = (() => {
             const active = new Set();
             const Easing = {
@@ -744,21 +744,27 @@
             );
             nichoSurGroup.add(pFondoLavadora);
 
-            const lenChaflan = Math.hypot(v3[0] - v2[0], v3[1] - v2[1]), angChaflan = Math.atan2(v3[1] - v2[1], v3[0] - v2[0]);
-            const pChaflan = new THREE.Mesh(new THREE.BoxGeometry(lenChaflan, hTotalParedes, espP), matTecaLisa);
-            pChaflan.rotation.y = -angChaflan;
-            pChaflan.position.set((v2[0] + v3[0]) / 2, yCentroMuro, (v2[1] + v3[1]) / 2);
-            nichoSurGroup.add(pChaflan);
-            
             const lenDer = Math.hypot(v4[0] - v3[0], v4[1] - v3[1]), angDer = Math.atan2(v4[1] - v3[1], v4[0] - v3[0]);
             const pDer = new THREE.Mesh(new THREE.BoxGeometry(lenDer, hTotalParedes, espP), matTecaLisa);
             pDer.rotation.y = -angDer;
             pDer.position.set((v3[0] + v4[0]) / 2, yCentroMuro, (v3[1] + v4[1]) / 2);
             nichoSurGroup.add(pDer);
 
-            // Panel de fondo del módulo Oeste: queda 15 cm por delante del muro de fondo.
+            // Cierres superiores de las dos esquinas: eliminan los huecos visuales entre
+            // los laterales del cobertizo y el encuentro con los muros perimetrales.
+            const alturaCierreEsquinas = Math.max(0.5, 316.0 - 221.0);
+            const espCierreEsquinas = grosorMuro;
+            const cierreEsquinaEste = crearCaja(espCierreEsquinas, alturaCierreEsquinas, v1[1] - v0[1], matMuro);
+            cierreEsquinaEste.position.set(v1[0] - espCierreEsquinas / 2, 221.0 + alturaCierreEsquinas / 2, (v0[1] + v1[1]) / 2);
+            nichoSurGroup.add(cierreEsquinaEste);
+
+            const cierreEsquinaOeste = crearCaja(espCierreEsquinas, alturaCierreEsquinas, v1[1] - v0[1], matMuro);
+            cierreEsquinaOeste.position.set(v4[0] + espCierreEsquinas / 2, 221.0 + alturaCierreEsquinas / 2, (v0[1] + v1[1]) / 2);
+            nichoSurGroup.add(cierreEsquinaOeste);
+
+            // Panel de fondo del módulo Oeste: queda 13 cm por delante del muro de fondo (2 cm más hacia el fondo que en INDEX 17.0).
             // Es completamente recto, atraviesa el chaflán y termina exactamente en el divisor central.
-            const separacionMuroFondo = 15.0;
+            const separacionMuroFondo = 13.0;
             const xPanelOesteInicio = v3[0];
             const anchoPanelOeste = Math.max(1, xDivisorGeometrico - xPanelOesteInicio);
             const zPanelOeste = v1[1] - separacionMuroFondo;
@@ -1602,7 +1608,7 @@
                     <div class="data-section">
                         <h3>Elementos incorporados</h3>
                         <ul>
-                            <li><strong>Coladeras:</strong> 3 coladeras pluviales redondas en el piso del patio.</li>
+                            <li><strong>Desagüe de piso:</strong> Sin coladeras pluviales visibles en el piso del patio.</li>
                             <li><strong>Divisor:</strong> Panel vertical central dentro del cobertizo de lavandería, dividiendo el espacio en dos áreas.</li>
                         </ul>
                     </div>
