@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-    <title>Visualizador 3D Interactivo - Patio Mineral Orgánico INDEX 17.1</title>
+    <title>Visualizador 3D Interactivo - Patio Mineral Orgánico INDEX 19</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; overflow: hidden; background-color: #5c7e9c; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; touch-action: none; user-select: none; }
@@ -82,7 +82,7 @@
 <body>
 
     <div id="canvas-container"></div>
-    <div id="version-indicator">INDEX 17.1</div>
+    <div id="version-indicator">INDEX 19</div>
     <div id="instrucciones">Toca la puerta corrediza, asador, cajones y persiana.<br>Arrastra 360° para rotar | Pellizca / Rueda para zoom</div>
 
     <div id="ui-muros-container">
@@ -125,7 +125,7 @@
                 const d = document.createElement('div');
                 d.className = 'load-error';
                 d.style.cssText = 'position:absolute;inset:70px 20px auto 20px;z-index:100;background:#0f172a;color:#fff;padding:18px;border-radius:14px;font:600 14px/1.45 sans-serif;text-align:center;';
-                d.textContent = 'Error de carga del visualizador. INDEX 17.1';
+                d.textContent = 'Error de carga del visualizador. INDEX 19';
                 c.appendChild(d);
             }
         });
@@ -135,7 +135,7 @@
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-        // INDEX 17.1: corrección de arranque; tween local sin dependencia externa.
+        // INDEX 19: ajuste del panel de fondo Oeste 6 cm hacia el fondo.
         const TWEEN = (() => {
             const active = new Set();
             const Easing = {
@@ -752,19 +752,9 @@
 
             // Cierres superiores de las dos esquinas: eliminan los huecos visuales entre
             // los laterales del cobertizo y el encuentro con los muros perimetrales.
-            const alturaCierreEsquinas = Math.max(0.5, 316.0 - 221.0);
-            const espCierreEsquinas = grosorMuro;
-            const cierreEsquinaEste = crearCaja(espCierreEsquinas, alturaCierreEsquinas, v1[1] - v0[1], matMuro);
-            cierreEsquinaEste.position.set(v1[0] - espCierreEsquinas / 2, 221.0 + alturaCierreEsquinas / 2, (v0[1] + v1[1]) / 2);
-            nichoSurGroup.add(cierreEsquinaEste);
-
-            const cierreEsquinaOeste = crearCaja(espCierreEsquinas, alturaCierreEsquinas, v1[1] - v0[1], matMuro);
-            cierreEsquinaOeste.position.set(v4[0] + espCierreEsquinas / 2, 221.0 + alturaCierreEsquinas / 2, (v0[1] + v1[1]) / 2);
-            nichoSurGroup.add(cierreEsquinaOeste);
-
-            // Panel de fondo del módulo Oeste: queda 13 cm por delante del muro de fondo (2 cm más hacia el fondo que en INDEX 17.0).
+            // Panel de fondo del módulo Oeste: queda 15 cm por delante del muro de fondo, 3 cm más hacia el fondo que en INDEX 17.4.
             // Es completamente recto, atraviesa el chaflán y termina exactamente en el divisor central.
-            const separacionMuroFondo = 13.0;
+            const separacionMuroFondo = 12.0;
             const xPanelOesteInicio = v3[0];
             const anchoPanelOeste = Math.max(1, xDivisorGeometrico - xPanelOesteInicio);
             const zPanelOeste = v1[1] - separacionMuroFondo;
@@ -778,6 +768,244 @@
                 zPanelOeste
             );
             nichoSurGroup.add(pFondoOeste);
+            // =====================================================================
+            // 
+            // =====================================================================
+            // CAJONERA CERRADA — MÓDULO OESTE — INDEX 19
+            // =====================================================================
+            // Se conserva la geometría de 17.9 y se corrige la cajonera para que
+            // no existan huecos entre frentes ni un espacio entre cajones y tapa.
+            // El ancho útil REAL del módulo Oeste en 17.9 es el tramo entre
+            // xPanelOesteInicio y xDivisorGeometrico.
+            // 2 columnas x 2 filas, frentes de 25 cm, zoclo inferior de 10 cm.
+            // Cuerpo de 60 cm: quedan 26 cm libres al frente.
+            // El zoclo queda retranqueado 10 cm respecto al frente de los cajones.
+            // Panel superior negro horizontal inmediatamente sobre los cajones.
+
+            const cajoneraOesteGroup = new THREE.Group();
+            cajoneraOesteGroup.name = 'Cajonera_Oeste_4_Cajones';
+
+            const anchoCajonera = Math.max(1, anchoPanelOeste);
+            const profundidadCuerpoCajonera = 60.0;
+            const profundidadUtilCajonera = 86.0;
+            const libreFrontalCajonera = 26.0;
+            const zocloAltoCajonera = 10.0;
+            const altoFrenteCajonera = 25.0;
+            const espEstructuraCajonera = 1.8;
+            const espFrenteCajonera = 2.0;
+
+            const xInicioCajonera = xPanelOesteInicio;
+            const xFinCajonera = xInicioCajonera + anchoCajonera;
+            const xCentroCajonera = (xInicioCajonera + xFinCajonera) / 2;
+            const anchoColumnaCajonera = anchoCajonera / 2;
+
+            // Panel de fondo existente.
+            const zFondoCajonera = zPanelOeste;
+            const zFrenteCajonera = zFondoCajonera - profundidadCuerpoCajonera;
+
+            // Piso interior existente.
+            const yPisoCajonera = 5.0;
+            const yBaseFrentes = yPisoCajonera + zocloAltoCajonera;
+
+            const matCajonNegro = new THREE.MeshStandardMaterial({
+                color: 0x171717,
+                roughness: 0.72,
+                metalness: 0.04
+            });
+            const matCajonMadera = matTecaLisa;
+
+            function agregarCajaCajonNegra(w, h, d, x, y, z, destino = cajoneraOesteGroup) {
+                const mesh = new THREE.Mesh(
+                    new THREE.BoxGeometry(w, h, d),
+                    matCajonNegro
+                );
+                mesh.position.set(x, y, z);
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+                destino.add(mesh);
+                return mesh;
+            }
+
+            function agregarFrenteCajonMadera(w, h, d, x, y, z, destino = cajoneraOesteGroup) {
+                const mesh = new THREE.Mesh(
+                    new THREE.BoxGeometry(w, h, d),
+                    matCajonMadera
+                );
+                mesh.position.set(x, y, z);
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+                destino.add(mesh);
+                return mesh;
+            }
+
+            // Zoclo negro: 10 cm de alto y 10 cm retranqueado desde el frente.
+            // Queda debajo de los cajones, no genera un hueco visible.
+            const zZoclo = zFrenteCajonera + 10.0;
+            const zCentroCuerpo = zFondoCajonera - profundidadCuerpoCajonera / 2;
+
+            agregarCajaCajonNegra(
+                anchoCajonera,
+                zocloAltoCajonera,
+                10.0,
+                xCentroCajonera,
+                yPisoCajonera + zocloAltoCajonera / 2,
+                zZoclo
+            );
+
+            // Estructura vertical: solo la altura de los dos cajones = 50 cm.
+            // No se dejan 10 cm adicionales entre los cajones y el panel superior.
+            const altoCajoneraFrentes = altoFrenteCajonera * 2;
+            const yCentroFrentes = yBaseFrentes + altoCajoneraFrentes / 2;
+
+            // Costados.
+            agregarCajaCajonNegra(
+                espEstructuraCajonera,
+                altoCajoneraFrentes,
+                profundidadCuerpoCajonera,
+                xInicioCajonera + espEstructuraCajonera / 2,
+                yCentroFrentes,
+                zCentroCuerpo
+            );
+            agregarCajaCajonNegra(
+                espEstructuraCajonera,
+                altoCajoneraFrentes,
+                profundidadCuerpoCajonera,
+                xFinCajonera - espEstructuraCajonera / 2,
+                yCentroFrentes,
+                zCentroCuerpo
+            );
+
+            // Divisor central.
+            agregarCajaCajonNegra(
+                espEstructuraCajonera,
+                altoCajoneraFrentes,
+                profundidadCuerpoCajonera,
+                xCentroCajonera,
+                yCentroFrentes,
+                zCentroCuerpo
+            );
+
+            // Trasero.
+            agregarCajaCajonNegra(
+                Math.max(0.5, anchoCajonera - 2 * espEstructuraCajonera),
+                altoCajoneraFrentes,
+                espEstructuraCajonera,
+                xCentroCajonera,
+                yCentroFrentes,
+                zFondoCajonera - espEstructuraCajonera / 2
+            );
+
+            // Frentes: exactamente 25 cm de alto y sin huecos verticales.
+            // En cada columna el frente llega hasta el divisor/lateral.
+            const anchoFrenteExacto =
+                Math.max(0.5, anchoColumnaCajonera - espEstructuraCajonera);
+
+            const anchoInterior =
+                Math.max(0.5, anchoColumnaCajonera - 2 * espEstructuraCajonera);
+
+            const altoInterior =
+                Math.max(0.5, altoFrenteCajonera - 2 * espEstructuraCajonera);
+
+            const profundidadInterior =
+                Math.max(0.5, profundidadCuerpoCajonera - 2 * espEstructuraCajonera);
+
+            for (let fila = 0; fila < 2; fila++) {
+                for (let columna = 0; columna < 2; columna++) {
+                    const x =
+                        xInicioCajonera +
+                        anchoColumnaCajonera * (columna + 0.5);
+
+                    const y =
+                        yBaseFrentes +
+                        altoFrenteCajonera * (fila + 0.5);
+
+                    // Cada cajón es un grupo independiente para permitir apertura individual.
+                    const grupoCajon = new THREE.Group();
+                    grupoCajon.name = `Cajon_Oeste_${fila + 1}_${columna + 1}`;
+
+                    // Caja interior negra.
+                    agregarCajaCajonNegra(
+                        anchoInterior,
+                        altoInterior,
+                        profundidadInterior,
+                        x,
+                        y,
+                        zCentroCuerpo,
+                        grupoCajon
+                    );
+
+                    // Frente continuo de 25 cm, sin huecos entre cajones.
+                    agregarFrenteCajonMadera(
+                        anchoFrenteExacto,
+                        altoFrenteCajonera,
+                        espFrenteCajonera,
+                        x,
+                        y,
+                        zFrenteCajonera + espFrenteCajonera / 2,
+                        grupoCajon
+                    );
+
+                    // Hitbox frontal invisible.
+                    const hitCajon = new THREE.Mesh(
+                        new THREE.BoxGeometry(
+                            Math.max(1, anchoFrenteExacto - 2),
+                            Math.max(1, altoFrenteCajonera - 2),
+                            4
+                        ),
+                        new THREE.MeshBasicMaterial({
+                            transparent: true,
+                            opacity: 0,
+                            depthWrite: false
+                        })
+                    );
+                    hitCajon.position.set(
+                        x,
+                        y,
+                        zFrenteCajonera - 0.5
+                    );
+                    grupoCajon.add(hitCajon);
+
+                    hitCajon.userData = {
+                        tipo: 'extraible',
+                        grupo: grupoCajon,
+                        abierto: false,
+                        posZ_cerrado: 0,
+                        // Norte = -Z. El cajón sale 24 cm hacia el frente.
+                        posZ_abierto: -24
+                    };
+
+                    objetosInteractivos.push(hitCajon);
+                    cajoneraOesteGroup.add(grupoCajon);
+                }
+            }
+
+            // Panel negro superior: inmediatamente sobre la cara superior de los
+            // cajones. No hay espacio entre los cajones y este panel.
+            const espPanelSuperior = 2.0;
+            const yPanelSuperior =
+                yBaseFrentes +
+                altoCajoneraFrentes +
+                espPanelSuperior / 2;
+
+            const panelSuperiorCajonera = new THREE.Mesh(
+                new THREE.BoxGeometry(
+                    anchoCajonera,
+                    espPanelSuperior,
+                    profundidadCuerpoCajonera
+                ),
+                matCajonNegro
+            );
+            panelSuperiorCajonera.position.set(
+                xCentroCajonera,
+                yPanelSuperior,
+                zCentroCuerpo
+            );
+            panelSuperiorCajonera.castShadow = true;
+            panelSuperiorCajonera.receiveShadow = true;
+            panelSuperiorCajonera.name = 'Panel_Negro_Cierre_Superior';
+            cajoneraOesteGroup.add(panelSuperiorCajonera);
+
+            nichoSurGroup.add(cajoneraOesteGroup);
 
             const lenFront = Math.hypot(v0[0] - v4[0], v0[1] - v4[1]);
             // El antiguo foso/desagüe se elimina: el interior queda sobre un escalón
@@ -875,12 +1103,12 @@
             // TECHO NEGRO MATE CON ALERO FRONTAL 20 CM (Z = 380) Y PENDIENTE FRONTAL
             // =========================================================================
             const grosorTecho = 8.5;
-            const zFrontRoof = 400.0; // Frente del techo alineado con el frente del cobertizo; sin voladizo en las esquinas.
-            const zBackRoof = 498.0;
+            const zFrontRoof = 370.0; // Frente del techo 30 cm hacia el frente respecto al cobertizo.
+            const zBackRoof = 498.0; // Fondo apoyado sobre el techo principal que cierra el nicho.
 
             function getRoofBottomAtZ(z) {
                 const t = (z - zFrontRoof) / (zBackRoof - zFrontRoof);
-                return 221.0 + Math.max(0, Math.min(1, t)) * 3.5; // Caída continua de 3.5 cm hacia el frente
+                return 221.0 + Math.max(0, Math.min(1, t)) * 3.5; // Pendiente: punto bajo al frente, sobre el techo principal.
             }
 
             // =====================================================================
@@ -1267,9 +1495,9 @@
         }
         // Barra principal: microcemento negro.
         crearPierMicrocemento(posX_Pier0, CONFIG.barra.altoTotal, CONFIG.barra.profundidadTotal, grupoMuroNorte, matMicrocemento);
-        // Exterior del nicho: mismo estuco orgánico que los muros.
-        crearPierMicrocemento(posX_PierNichoIzq, hNichoTotal, CONFIG.barra.profundidadTotal, grupoNichoNorte, matMuro);
-        crearPierMicrocemento(posX_PierNichoDer, hNichoTotal, CONFIG.barra.profundidadTotal, grupoNichoNorte, matMuro);
+        // Exterior del nicho del refrigerador: microcemento negro mate, igual que la cubierta.
+        crearPierMicrocemento(posX_PierNichoIzq, hNichoTotal, CONFIG.barra.profundidadTotal, grupoNichoNorte, matMicrocemento);
+        crearPierMicrocemento(posX_PierNichoDer, hNichoTotal, CONFIG.barra.profundidadTotal, grupoNichoNorte, matMicrocemento);
         function crearPanelDivisorInterno(posX, profundidad = CONFIG.barra.profundidadMueble - 4) { const panel = crearCaja(1.8, altoMueblesEstandar - 2, profundidad, matPVC); panel.position.set(posX, CONFIG.barra.altoZocalo + (altoMueblesEstandar - 2) / 2, profundidad / 2 + 1); grupoMuroNorte.add(panel); }
         crearPanelDivisorInterno(posX_ModIzq + (CONFIG.modulos.izquierdo.ancho / 2)); crearPanelDivisorInterno(posX_ModDer + (CONFIG.modulos.derecho.ancho / 2));
         function crearBoteBasuraAnchoHorizontal() {
@@ -1288,6 +1516,49 @@
         const dropDer = crearCaja(topH, hBordeLateralAsador, topD, matMicrocemento); dropDer.position.set(posX_ModAsador + wAsador - topH / 2, posY_DropBordeAsador, topD / 2); grupoMuroNorte.add(dropDer);
         const profAsador = CONFIG.modulos.asador.profundidadCerrado, profRestanteAtras = topD - profAsador; 
         if (profRestanteAtras > 0) { const cubAtrasAsador = crearCaja(wAsador, topH, profRestanteAtras, matMicrocemento); cubAtrasAsador.position.set(posX_ModAsador + wAsador / 2, CONFIG.barra.altoTotal - topH / 2, profRestanteAtras / 2); grupoMuroNorte.add(cubAtrasAsador); }
+
+        // =====================================================================
+        // CIERRE COMPLETO DE LA BARRA NORTE — INDEX 19
+        // =====================================================================
+        // La cubierta debe cubrir exactamente toda la barra de 274 cm de ancho,
+        // incluidos los pilares laterales. Se añade una pieza continua para evitar
+        // que el mueble inferior quede fuera de la cubierta.
+        const anchoBarraCerrada = anchoBarraExclusivo;
+        const cubiertaBarraContinua = crearCaja(
+            anchoBarraCerrada,
+            topH,
+            topD,
+            matMicrocemento
+        );
+        cubiertaBarraContinua.position.set(
+            anchoBarraCerrada / 2,
+            CONFIG.barra.altoTotal - topH / 2,
+            topD / 2
+        );
+        cubiertaBarraContinua.rotation.x = anguloPendiente;
+        cubiertaBarraContinua.castShadow = true;
+        cubiertaBarraContinua.receiveShadow = true;
+        cubiertaBarraContinua.name = 'Cubierta_Barra_Norte_Continua';
+        grupoMuroNorte.add(cubiertaBarraContinua);
+
+        // Panel lateral Este de cierre. Ocupa todo el extremo de la barra principal
+        // y evita que el mueble/cubierta queden abiertos en ese lado.
+        const panelLateralEsteBarra = crearCaja(
+            topH,
+            CONFIG.barra.altoTotal - CONFIG.barra.altoZocalo - topH,
+            topD,
+            matMicrocemento
+        );
+        panelLateralEsteBarra.position.set(
+            anchoBarraCerrada - topH / 2,
+            CONFIG.barra.altoZocalo +
+                (CONFIG.barra.altoTotal - CONFIG.barra.altoZocalo - topH) / 2,
+            topD / 2
+        );
+        panelLateralEsteBarra.name = 'Panel_Lateral_Este_Barra_Norte';
+        panelLateralEsteBarra.castShadow = true;
+        panelLateralEsteBarra.receiveShadow = true;
+        grupoMuroNorte.add(panelLateralEsteBarra);
 
         function construirJardineraYPlantas() {
             // Se elimina por completo la jardinera corrida. Solo quedan dos macetas
