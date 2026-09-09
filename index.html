@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-    <title>Visualizador 3D Interactivo - Patio Mineral Orgánico INDEX 16.8</title>
+    <title>Visualizador 3D Interactivo - Patio Mineral Orgánico INDEX 16.9</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; overflow: hidden; background-color: #5c7e9c; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; touch-action: none; user-select: none; }
@@ -82,7 +82,7 @@
 <body>
 
     <div id="canvas-container"></div>
-    <div id="version-indicator">INDEX 16.8</div>
+    <div id="version-indicator">INDEX 16.9</div>
     <div id="instrucciones">Toca la puerta corrediza, asador, cajones y persiana.<br>Arrastra 360° para rotar | Pellizca / Rueda para zoom</div>
 
     <div id="ui-muros-container">
@@ -125,7 +125,7 @@
                 const d = document.createElement('div');
                 d.className = 'load-error';
                 d.style.cssText = 'position:absolute;inset:70px 20px auto 20px;z-index:100;background:#0f172a;color:#fff;padding:18px;border-radius:14px;font:600 14px/1.45 sans-serif;text-align:center;';
-                d.textContent = 'Error de carga del visualizador. INDEX 16.8';
+                d.textContent = 'Error de carga del visualizador. INDEX 16.9';
                 c.appendChild(d);
             }
         });
@@ -135,7 +135,7 @@
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-        // INDEX 16.8: corrección de arranque; tween local sin dependencia externa.
+        // INDEX 16.9: corrección de arranque; tween local sin dependencia externa.
         const TWEEN = (() => {
             const active = new Set();
             const Easing = {
@@ -746,10 +746,10 @@
             pDer.position.set((v3[0] + v4[0]) / 2, yCentroMuro, (v3[1] + v4[1]) / 2);
             nichoSurGroup.add(pDer);
 
-            // Nuevo panel recto para el área Oeste:
-            // 15 cm separado del muro de fondo y prolongado a través del chaflán.
+            // Panel recto del módulo Oeste:
+            // 15 cm separado del muro de fondo, prolongado hasta tocar el panel lateral Oeste y atravesando el chaflán.
             const separacionMuroFondo = 15.0;
-            const xPanelNuevo = v2[0] + separacionMuroFondo;
+            const xPanelNuevo = v3[0];
             const zPanelNuevo = v1[1] - separacionMuroFondo;
             const largoPanelNuevo = Math.max(1, v1[0] - xPanelNuevo);
             const pFondoNuevoRecto = new THREE.Mesh(
@@ -908,33 +908,8 @@
             panelDivisor.receiveShadow = true;
             nichoSurGroup.add(panelDivisor);
 
-            // PANEL HORIZONTAL SOBRE LA LAVADORA: 10 cm libres sobre su parte superior.
-            // Tiene la misma profundidad útil que el divisor: desde el fondo hasta el frente de la lavadora,
-            // dejando los 5 cm libres de circulación al frente.
-            const tPanelHorizontal = 1.5;
-            const zPanelHorizontalFondo = v1[1];
-            const zPanelHorizontalFrente = posZ_Torre - washerD / 2;
-            const profundidadPanelHorizontal = zPanelHorizontalFondo - zPanelHorizontalFrente;
-            const yPanelHorizontal = washerH + 10.0 + tPanelHorizontal / 2;
-            // Ancho completo del módulo de la lavadora: de panel lateral a panel divisor.
-            const xPanelHorizontalOeste = xDivisor;
-            const xPanelHorizontalEste = v0[0];
-            const anchoPanelHorizontal = Math.abs(xPanelHorizontalEste - xPanelHorizontalOeste);
-            const centroXPanelHorizontal = (xPanelHorizontalOeste + xPanelHorizontalEste) / 2;
-            const panelHorizontalLavadora = crearCaja(anchoPanelHorizontal, tPanelHorizontal, profundidadPanelHorizontal, matTecaLisa);
-            panelHorizontalLavadora.position.set(
-                centroXPanelHorizontal,
-                yPanelHorizontal,
-                (zPanelHorizontalFondo + zPanelHorizontalFrente) / 2
-            );
-            panelHorizontalLavadora.castShadow = true;
-            panelHorizontalLavadora.receiveShadow = true;
-            nichoSurGroup.add(panelHorizontalLavadora);
-
-            // Faldón Trasero Superior (Z = 498)
-            const faldonTrasero = crearCaja(148, 4.5, espP, matMuro);
-            faldonTrasero.position.set((v1[0] + v2[0]) / 2, 222.25, v1[1] - espP / 2);
-            nichoSurGroup.add(faldonTrasero);
+            // Los dos paneles horizontales superiores señalados en la referencia se eliminan.
+            // Se conserva únicamente el panel vertical del módulo Oeste, extendido hasta el panel lateral Oeste.
 
             // Faldón Lateral Este (Alineado estrictamente a X = 175.34 sin penetrar el muro Este)
             const geomFaldonEste = new THREE.BufferGeometry();
