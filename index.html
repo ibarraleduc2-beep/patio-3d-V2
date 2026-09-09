@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-    <title>Visualizador 3D Interactivo - Patio Mineral Orgánico INDEX 16.1</title>
+    <title>Visualizador 3D Interactivo - Patio Mineral Orgánico INDEX 16.6</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; overflow: hidden; background-color: #5c7e9c; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; touch-action: none; user-select: none; }
@@ -79,7 +79,7 @@
 <body>
 
     <div id="canvas-container"></div>
-    <div id="version-indicator">INDEX 16.3</div>
+    <div id="version-indicator">INDEX 16.6</div>
     <div id="instrucciones">Toca la puerta corrediza, asador, cajones y persiana.<br>Arrastra 360° para rotar | Pellizca / Rueda para zoom</div>
 
     <div id="ui-muros-container">
@@ -118,7 +118,7 @@
                 const d = document.createElement('div');
                 d.className = 'load-error';
                 d.style.cssText = 'position:absolute;inset:70px 20px auto 20px;z-index:100;background:#0f172a;color:#fff;padding:18px;border-radius:14px;font:600 14px/1.45 sans-serif;text-align:center;';
-                d.textContent = 'Error de carga del visualizador. INDEX 16.1';
+                d.textContent = 'Error de carga del visualizador. INDEX 16.6';
                 c.appendChild(d);
             }
         });
@@ -128,7 +128,7 @@
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-        // INDEX 16.3: corrección de arranque; tween local sin dependencia externa.
+        // INDEX 16.6: corrección de arranque; tween local sin dependencia externa.
         const TWEEN = (() => {
             const active = new Set();
             const Easing = {
@@ -703,7 +703,7 @@
             // Datos de la torre de lavado definidos antes de cualquier referencia.
             const washerW = 70, washerH = 185, washerD = 83;
             const posZ_Torre = 446.50;
-            const posX_Torre = 175.34 - 2.5 - (washerW / 2); // 137.84 cm
+            const posX_Torre = 175.34 - 2.5 - (washerW / 2) - 1.30; // 136.54 cm; 3 cm libres al Este
 
             const hTotalParedes = hInteriorCloset + profDesague;
             const yCentroMuro = hTotalParedes / 2 - profDesague;
@@ -720,10 +720,11 @@
             pIzq.position.set(v1[0] - espP / 2, yCentroMuro, (v0[1] + v1[1]) / 2);
             nichoSurGroup.add(pIzq);
 
-            const pFondo = new THREE.Mesh(new THREE.BoxGeometry(148, hTotalParedes, espP), matTecaLisa);
-            pFondo.position.set((v1[0] + v2[0]) / 2, yCentroMuro, v1[1] - espP / 2);
-            nichoSurGroup.add(pFondo);
-            
+            // Fondo del área de la lavadora: se conserva sin cambios.
+            const pFondoLavadora = new THREE.Mesh(new THREE.BoxGeometry(148, hTotalParedes, espP), matTecaLisa);
+            pFondoLavadora.position.set((v1[0] + v2[0]) / 2, yCentroMuro, v1[1] - espP / 2);
+            nichoSurGroup.add(pFondoLavadora);
+
             const lenChaflan = Math.hypot(v3[0] - v2[0], v3[1] - v2[1]), angChaflan = Math.atan2(v3[1] - v2[1], v3[0] - v2[0]);
             const pChaflan = new THREE.Mesh(new THREE.BoxGeometry(lenChaflan, hTotalParedes, espP), matTecaLisa);
             pChaflan.rotation.y = -angChaflan;
@@ -735,7 +736,24 @@
             pDer.rotation.y = -angDer;
             pDer.position.set((v3[0] + v4[0]) / 2, yCentroMuro, (v3[1] + v4[1]) / 2);
             nichoSurGroup.add(pDer);
-            
+
+            // Nuevo panel recto para el área Oeste:
+            // 15 cm separado del muro de fondo y prolongado a través del chaflán.
+            const separacionMuroFondo = 15.0;
+            const xPanelNuevo = v2[0] + separacionMuroFondo;
+            const zPanelNuevo = v1[1] - separacionMuroFondo;
+            const largoPanelNuevo = Math.max(1, v1[0] - xPanelNuevo);
+            const pFondoNuevoRecto = new THREE.Mesh(
+                new THREE.BoxGeometry(largoPanelNuevo, hTotalParedes, espP),
+                matTecaLisa
+            );
+            pFondoNuevoRecto.position.set(
+                xPanelNuevo + largoPanelNuevo / 2,
+                yCentroMuro,
+                zPanelNuevo
+            );
+            nichoSurGroup.add(pFondoNuevoRecto);
+
             const lenFront = Math.hypot(v0[0] - v4[0], v0[1] - v4[1]);
             // El antiguo foso/desagüe se elimina: el interior queda sobre un escalón
             // de 5 cm, con caída total de 1 cm hacia el frente (Z=400).
@@ -867,7 +885,8 @@
             // =====================================================================
             // Divide el cobertizo en dos áreas iguales en planta. Sigue la pendiente
             // del piso y del techo para no dejar una abertura superior o inferior.
-            const xDivisor = (v0[0] + v4[0]) / 2;
+            const tDivisor = 1.5;
+            const xDivisor = (posX_Torre - washerW / 2) - 3.0 - (tDivisor / 2);
             // Las dimensiones/posición de la lavadora ya están declaradas arriba.
             const zDivFrente = posZ_Torre - washerD / 2; // termina donde termina la lavadora, dejando 5 cm libres al frente
             const zDivFondo = v1[1];
@@ -875,7 +894,6 @@
             const yPisoDivFondo = hEscalonTrasero;
             const yTechoDivFrente = getRoofBottomAtZ(zDivFrente);
             const yTechoDivFondo = getRoofBottomAtZ(zDivFondo);
-            const tDivisor = 1.5;
             const vertsDivisor = new Float32Array([
                 xDivisor - tDivisor / 2, yPisoDivFrente, zDivFrente,
                 xDivisor + tDivisor / 2, yPisoDivFrente, zDivFrente,
