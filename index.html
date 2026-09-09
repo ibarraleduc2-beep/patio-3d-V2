@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-    <title>Visualizador 3D Interactivo - Patio Mineral Orgánico INDEX 16</title>
+    <title>Visualizador 3D Interactivo - Patio Mineral Orgánico INDEX 16.1</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; overflow: hidden; background-color: #5c7e9c; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; touch-action: none; user-select: none; }
@@ -79,7 +79,7 @@
 <body>
 
     <div id="canvas-container"></div>
-    <div id="version-indicator">INDEX 16</div>
+    <div id="version-indicator">INDEX 16.1</div>
     <div id="instrucciones">Toca la puerta corrediza, asador, cajones y persiana.<br>Arrastra 360° para rotar | Pellizca / Rueda para zoom</div>
 
     <div id="ui-muros-container">
@@ -118,7 +118,7 @@
                 const d = document.createElement('div');
                 d.className = 'load-error';
                 d.style.cssText = 'position:absolute;inset:70px 20px auto 20px;z-index:100;background:#0f172a;color:#fff;padding:18px;border-radius:14px;font:600 14px/1.45 sans-serif;text-align:center;';
-                d.textContent = 'Error de carga del visualizador. INDEX 16';
+                d.textContent = 'Error de carga del visualizador. INDEX 16.1';
                 c.appendChild(d);
             }
         });
@@ -128,7 +128,7 @@
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-        // INDEX 16: tween local para eliminar la dependencia externa de @tweenjs/tween.js.
+        // INDEX 16.1: corrección de arranque; tween local sin dependencia externa.
         const TWEEN = (() => {
             const active = new Set();
             const Easing = {
@@ -699,6 +699,11 @@
             const nichoSurGroup = new THREE.Group();
             const profDesague = 8;
             const hInteriorCloset = 220;
+
+            // Datos de la torre de lavado definidos antes de cualquier referencia.
+            const washerW = 70, washerH = 185, washerD = 83;
+            const posZ_Torre = 446.50;
+
             const hTotalParedes = hInteriorCloset + profDesague;
             const yCentroMuro = hTotalParedes / 2 - profDesague;
             const espP = 0.8;
@@ -860,6 +865,7 @@
             // Divide el cobertizo en dos áreas iguales en planta. Sigue la pendiente
             // del piso y del techo para no dejar una abertura superior o inferior.
             const xDivisor = (v0[0] + v4[0]) / 2;
+            // Las dimensiones/posición de la lavadora ya están declaradas arriba.
             const zDivFrente = posZ_Torre - washerD / 2; // termina donde termina la lavadora, dejando 5 cm libres al frente
             const zDivFondo = v1[1];
             const yPisoDivFrente = hEscalonTrasero - caidaFrontal;
@@ -1015,7 +1021,6 @@
             // TORRE DE LAVADO Y SECADO (10 cm LIBRES ATRÁS, 5 cm LIBRES AL FRENTE)
             // =========================================================================
             const torreGroup = new THREE.Group();
-            const washerW = 70, washerH = 185, washerD = 83; 
             
             const cuerpoTorre = crearCaja(washerW, washerH, washerD, matLavadoraNegra);
             cuerpoTorre.position.set(0, washerH / 2, 0);
@@ -1055,7 +1060,6 @@
 
             // Confinamiento milimétrico
             const posX_Torre = 175.34 - 2.5 - (washerW / 2); // 137.84 cm
-            const posZ_Torre = 446.50; // Centro exacto
             torreGroup.position.set(posX_Torre, 0, posZ_Torre);
             nichoSurGroup.add(torreGroup);
 
