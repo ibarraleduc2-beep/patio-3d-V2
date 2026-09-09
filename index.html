@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-    <title>Visualizador 3D Interactivo - Patio Mineral Orgánico INDEX 15.1</title>
+    <title>Visualizador 3D Interactivo - Patio Mineral Orgánico INDEX 15.2</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; overflow: hidden; background-color: #5c7e9c; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; touch-action: none; user-select: none; }
@@ -79,7 +79,7 @@
 <body>
 
     <div id="canvas-container"></div>
-    <div id="version-indicator">INDEX 15.1</div>
+    <div id="version-indicator">INDEX 15.2</div>
     <div id="instrucciones">Toca la puerta corrediza, asador, cajones y persiana.<br>Arrastra 360° para rotar | Pellizca / Rueda para zoom</div>
 
     <div id="ui-muros-container">
@@ -557,12 +557,16 @@
         const jambaDer = crearCaja(grosorMuro + 1, altoVentana, grosorMarco, matAluminio); jambaDer.position.z = tamVentana / 2 - grosorMarco / 2; ventanaGroup.add(jambaDer);
         const rielInferior = crearCaja(grosorMuro + 1, grosorMarco, tamVentana, matAluminio); rielInferior.position.y = -altoVentana / 2 + grosorMarco / 2; ventanaGroup.add(rielInferior);
         const rielSuperior = crearCaja(grosorMuro + 1, grosorMarco, tamVentana, matAluminio); rielSuperior.position.y = altoVentana / 2 - grosorMarco / 2; ventanaGroup.add(rielSuperior);
-        // INDEX 15.1: ventanal de 3 paneles. 1 fijo al Norte + 2 móviles.
-        // Los dos móviles se recorren hacia el Norte (-Z) y se apilan junto al panel fijo.
+        // INDEX 15.2 — ventanal de 3 paneles: 1 fijo + 2 móviles.
+        // Norte = -Z. Los dos paneles móviles se desplazan hacia -Z y se apilan junto al panel fijo.
         const anchoPanel = (tamVentana - (grosorMarco * 2)) / 3;
         const altoPanelVidrio = altoVentana - (grosorMarco * 2);
         const zBase = -tamVentana / 2 + grosorMarco;
-        const zCerrado = [zBase + anchoPanel / 2, zBase + anchoPanel * 1.5, zBase + anchoPanel * 2.5];
+        const zCerrado = [
+            zBase + anchoPanel / 2,
+            zBase + anchoPanel * 1.5,
+            zBase + anchoPanel * 2.5
+        ];
 
         for (let p = 0; p < 3; p++) {
             const hojaGroup = new THREE.Group();
@@ -576,27 +580,25 @@
             m3.position.y = altoPanelVidrio / 2 - 1.5; hojaGroup.add(m3);
             const m4 = crearCaja(3, 3, anchoPanel, matAluminio);
             m4.position.y = -altoPanelVidrio / 2 + 1.5; hojaGroup.add(m4);
-            hojaGroup.add(new THREE.Mesh(new THREE.BoxGeometry(1.2, altoPanelVidrio - 6, anchoPanel - 6), matVidrio));
+
+            const vidrio = new THREE.Mesh(
+                new THREE.BoxGeometry(1.2, altoPanelVidrio - 6, anchoPanel - 6),
+                matVidrio
+            );
+            vidrio.userData = {
+                tipo: 'ventanal_movil',
+                grupo: hojaGroup,
+                abierto: false,
+                zCerrado: zCerrado[p],
+                zAbierto: zCerrado[0]
+            };
+            hojaGroup.add(vidrio);
 
             if (p > 0) {
                 const jal = crearCaja(2, 20, 1.5, matAluminio);
                 jal.position.set(2, 0, p === 1 ? anchoPanel / 2 - 4 : -anchoPanel / 2 + 4);
                 hojaGroup.add(jal);
-
-                // Hitbox invisible para conservar la interacción sin usar el Group directamente.
-                const hit = new THREE.Mesh(
-                    new THREE.BoxGeometry(6, Math.max(20, altoPanelVidrio - 8), Math.max(6, anchoPanel - 8)),
-                    new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false })
-                );
-                hit.userData = {
-                    tipo: 'ventanal_movil',
-                    grupo: hojaGroup,
-                    abierto: false,
-                    cerradoZ: zCerrado[p],
-                    abiertoZ: zCerrado[0]
-                };
-                hojaGroup.add(hit);
-                objetosInteractivos.push(hit);
+                objetosInteractivos.push(vidrio);
             }
 
             ventanaGroup.add(hojaGroup);
@@ -1481,6 +1483,7 @@
                 if (data.tipo === 'extraible') new TWEEN.Tween(data.grupo.position).to({ z: targetAbierto ? data.posZ_abierto : data.posZ_cerrado }, duration).easing(TWEEN.Easing.Cubic.Out).start();
                 else if (data.tipo === 'puerta' || data.tipo === 'puerta_louver') new TWEEN.Tween(data.grupo.rotation).to({ y: targetAbierto ? data.rotY_abierto : data.rotY_cerrado }, duration).easing(TWEEN.Easing.Cubic.Out).start();
                 else if (data.tipo === 'puerta_corrediza') new TWEEN.Tween(data.grupo.position).to({ x: targetAbierto ? data.posX_abierto : data.posX_cerrado }, 800).easing(TWEEN.Easing.Cubic.InOut).start();
+                else if (data.tipo === 'ventanal_movil') new TWEEN.Tween(data.grupo.position).to({ z: targetAbierto ? data.zAbierto : data.zCerrado }, 800).easing(TWEEN.Easing.Cubic.InOut).start();
                 else if (data.tipo === 'tapa_asador') new TWEEN.Tween(data.grupo.rotation).to({ x: targetAbierto ? data.rotX_abierto : data.rotX_cerrado }, duration).easing(TWEEN.Easing.Back.Out).start();
                 else if (data.tipo === 'cortina') new TWEEN.Tween(data.meshVisual.scale).to({ y: targetAbierto ? data.escala_abierto : data.escala_cerrado }, 1000).easing(TWEEN.Easing.Cubic.InOut).start();
                 data.abierto = targetAbierto;
