@@ -79,7 +79,7 @@
 <body>
 
     <div id="canvas-container"></div>
-    <div id="version-indicator">INDEX 16.2</div>
+    <div id="version-indicator">INDEX 16.3</div>
     <div id="instrucciones">Toca la puerta corrediza, asador, cajones y persiana.<br>Arrastra 360° para rotar | Pellizca / Rueda para zoom</div>
 
     <div id="ui-muros-container">
@@ -128,7 +128,7 @@
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-        // INDEX 16.2: corrección de arranque; tween local sin dependencia externa.
+        // INDEX 16.3: corrección de arranque; tween local sin dependencia externa.
         const TWEEN = (() => {
             const active = new Set();
             const Easing = {
@@ -818,17 +818,19 @@
             crearContactoMuroNorte(82, 118);
             crearContactoMuroNorte(310, 118);
 
-            // Tercer contacto en el muro fijo del área de lavandería, en la zona
-            // indicada en la referencia, sin unirlo a la hoja móvil de la puerta.
+            // Tercer contacto: extremo Este, sobre el muro Este, en la esquina con el muro Sur.
+            // NO va dentro del nicho de lavandería.
             const contactoLavanderia = new THREE.Group();
+            const xContactoEste = CONFIG.muroNorte.ancho - 0.7;
+            const zContactoSur = 414;
             const placaLav = crearCaja(1.2, 10, 10, matContactoPlaca);
-            placaLav.position.set(v4[0] + 0.7, 118, 414);
+            placaLav.position.set(xContactoEste, 118, zContactoSur);
             contactoLavanderia.add(placaLav);
             const ranuraLav1 = crearCaja(0.5, 3.0, 1.1, matContactoRanura);
-            ranuraLav1.position.set(v4[0] + 1.35, 118.4, 412.3);
+            ranuraLav1.position.set(xContactoEste - 0.65, 118.4, zContactoSur - 1.7);
             contactoLavanderia.add(ranuraLav1);
             const ranuraLav2 = crearCaja(0.5, 3.0, 1.1, matContactoRanura);
-            ranuraLav2.position.set(v4[0] + 1.35, 118.4, 415.7);
+            ranuraLav2.position.set(xContactoEste - 0.65, 118.4, zContactoSur + 1.7);
             contactoLavanderia.add(ranuraLav2);
             nichoSurGroup.add(contactoLavanderia);
 
@@ -909,9 +911,14 @@
             const zPanelHorizontalFrente = posZ_Torre - washerD / 2;
             const profundidadPanelHorizontal = zPanelHorizontalFondo - zPanelHorizontalFrente;
             const yPanelHorizontal = washerH + 10.0 + tPanelHorizontal / 2;
-            const panelHorizontalLavadora = crearCaja(washerW, tPanelHorizontal, profundidadPanelHorizontal, matTecaLisa);
+            // Ancho completo del módulo de la lavadora: de panel lateral a panel divisor.
+            const xPanelHorizontalOeste = xDivisor;
+            const xPanelHorizontalEste = v0[0];
+            const anchoPanelHorizontal = Math.abs(xPanelHorizontalEste - xPanelHorizontalOeste);
+            const centroXPanelHorizontal = (xPanelHorizontalOeste + xPanelHorizontalEste) / 2;
+            const panelHorizontalLavadora = crearCaja(anchoPanelHorizontal, tPanelHorizontal, profundidadPanelHorizontal, matTecaLisa);
             panelHorizontalLavadora.position.set(
-                posX_Torre,
+                centroXPanelHorizontal,
                 yPanelHorizontal,
                 (zPanelHorizontalFondo + zPanelHorizontalFrente) / 2
             );
