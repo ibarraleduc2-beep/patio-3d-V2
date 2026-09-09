@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-    <title>Visualizador 3D Interactivo - Patio Mineral Orgánico INDEX 13</title>
+    <title>Visualizador 3D Interactivo - Patio Mineral Orgánico INDEX 15</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; overflow: hidden; background-color: #5c7e9c; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; touch-action: none; user-select: none; }
@@ -79,7 +79,7 @@
 <body>
 
     <div id="canvas-container"></div>
-    <div id="version-indicator">INDEX 13</div>
+    <div id="version-indicator">INDEX 15</div>
     <div id="instrucciones">Toca la puerta corrediza, asador, cajones y persiana.<br>Arrastra 360° para rotar | Pellizca / Rueda para zoom</div>
 
     <div id="ui-muros-container">
@@ -557,15 +557,27 @@
         const jambaDer = crearCaja(grosorMuro + 1, altoVentana, grosorMarco, matAluminio); jambaDer.position.z = tamVentana / 2 - grosorMarco / 2; ventanaGroup.add(jambaDer);
         const rielInferior = crearCaja(grosorMuro + 1, grosorMarco, tamVentana, matAluminio); rielInferior.position.y = -altoVentana / 2 + grosorMarco / 2; ventanaGroup.add(rielInferior);
         const rielSuperior = crearCaja(grosorMuro + 1, grosorMarco, tamVentana, matAluminio); rielSuperior.position.y = altoVentana / 2 - grosorMarco / 2; ventanaGroup.add(rielSuperior);
-        const anchoPanel = (tamVentana - (grosorMarco * 2)) / 4, altoPanelVidrio = altoVentana - (grosorMarco * 2);
-        for (let p = 0; p < 4; p++) {
-            const hojaGroup = new THREE.Group(); hojaGroup.position.set((p === 1 || p === 2) ? 3 : -3, 0, -tamVentana / 2 + grosorMarco + (p * anchoPanel) + (anchoPanel / 2));
+        // V15: ventanal de 3 paneles. El panel Norte es fijo; los otros 2 son móviles.
+        // Al abrir, ambos móviles se recorren hacia el Norte (-Z) y quedan apilados con el fijo.
+        const anchoPanel = (tamVentana - (grosorMarco * 2)) / 3, altoPanelVidrio = altoVentana - (grosorMarco * 2);
+        const posicionesCerrado = [-tamVentana / 2 + grosorMarco + anchoPanel / 2, -tamVentana / 2 + grosorMarco + anchoPanel * 1.5, -tamVentana / 2 + grosorMarco + anchoPanel * 2.5];
+        const hojasVentanal = [];
+        for (let p = 0; p < 3; p++) {
+            const hojaGroup = new THREE.Group();
+            hojaGroup.position.set(p === 0 ? -3 : 3, 0, posicionesCerrado[p]);
             const m1 = crearCaja(3, altoPanelVidrio, 3, matAluminio); m1.position.z = -anchoPanel / 2 + 1.5; hojaGroup.add(m1);
             const m2 = crearCaja(3, altoPanelVidrio, 3, matAluminio); m2.position.z = anchoPanel / 2 - 1.5; hojaGroup.add(m2);
             const m3 = crearCaja(3, 3, anchoPanel, matAluminio); m3.position.y = altoPanelVidrio / 2 - 1.5; hojaGroup.add(m3);
             const m4 = crearCaja(3, 3, anchoPanel, matAluminio); m4.position.y = -altoPanelVidrio / 2 + 1.5; hojaGroup.add(m4);
             hojaGroup.add(new THREE.Mesh(new THREE.BoxGeometry(1.2, altoPanelVidrio - 6, anchoPanel - 6), matVidrio));
-            if (p === 1 || p === 2) { const jal = crearCaja(2, 20, 1.5, matAluminio); jal.position.set(2, 0, (p === 1 ? 1 : -1) * (anchoPanel / 2 - 4)); hojaGroup.add(jal); }
+            if (p > 0) {
+                const jal = crearCaja(2, 20, 1.5, matAluminio);
+                jal.position.set(2, 0, p === 1 ? anchoPanel / 2 - 4 : -anchoPanel / 2 + 4);
+                hojaGroup.add(jal);
+                hojaGroup.userData = { tipo: 'ventanal_movil', abierto: false, cerradoZ: posicionesCerrado[p], abiertoZ: posicionesCerrado[0] };
+                objetosInteractivos.push(hojaGroup);
+            }
+            hojasVentanal.push(hojaGroup);
             ventanaGroup.add(hojaGroup);
         }
         grupoMuroEste.add(ventanaGroup);
@@ -799,7 +811,7 @@
             // Divide el cobertizo en dos áreas iguales en planta. Sigue la pendiente
             // del piso y del techo para no dejar una abertura superior o inferior.
             const xDivisor = (v0[0] + v4[0]) / 2;
-            const zDivFrente = v0[1];
+            const zDivFrente = posZ_Torre - washerD / 2; // termina donde termina la lavadora, dejando 5 cm libres al frente
             const zDivFondo = v1[1];
             const yPisoDivFrente = hEscalonTrasero - caidaFrontal;
             const yPisoDivFondo = hEscalonTrasero;
@@ -832,6 +844,24 @@
             panelDivisor.castShadow = true;
             panelDivisor.receiveShadow = true;
             nichoSurGroup.add(panelDivisor);
+
+            // PANEL HORIZONTAL SOBRE LA LAVADORA: 10 cm libres sobre su parte superior.
+            // Tiene la misma profundidad útil que el divisor: desde el fondo hasta el frente de la lavadora,
+            // dejando los 5 cm libres de circulación al frente.
+            const tPanelHorizontal = 1.5;
+            const zPanelHorizontalFondo = v1[1];
+            const zPanelHorizontalFrente = posZ_Torre - washerD / 2;
+            const profundidadPanelHorizontal = zPanelHorizontalFondo - zPanelHorizontalFrente;
+            const yPanelHorizontal = washerH + 10.0 + tPanelHorizontal / 2;
+            const panelHorizontalLavadora = crearCaja(washerW, tPanelHorizontal, profundidadPanelHorizontal, matTecaLisa);
+            panelHorizontalLavadora.position.set(
+                posX_Torre,
+                yPanelHorizontal,
+                (zPanelHorizontalFondo + zPanelHorizontalFrente) / 2
+            );
+            panelHorizontalLavadora.castShadow = true;
+            panelHorizontalLavadora.receiveShadow = true;
+            nichoSurGroup.add(panelHorizontalLavadora);
 
             // Faldón Trasero Superior (Z = 498)
             const faldonTrasero = crearCaja(148, 4.5, espP, matMuro);
@@ -1430,6 +1460,7 @@
                 if (data.tipo === 'extraible') new TWEEN.Tween(data.grupo.position).to({ z: targetAbierto ? data.posZ_abierto : data.posZ_cerrado }, duration).easing(TWEEN.Easing.Cubic.Out).start();
                 else if (data.tipo === 'puerta' || data.tipo === 'puerta_louver') new TWEEN.Tween(data.grupo.rotation).to({ y: targetAbierto ? data.rotY_abierto : data.rotY_cerrado }, duration).easing(TWEEN.Easing.Cubic.Out).start();
                 else if (data.tipo === 'puerta_corrediza') new TWEEN.Tween(data.grupo.position).to({ x: targetAbierto ? data.posX_abierto : data.posX_cerrado }, 800).easing(TWEEN.Easing.Cubic.InOut).start();
+                else if (data.tipo === 'ventanal_movil') new TWEEN.Tween(data.grupo.position).to({ z: targetAbierto ? data.abiertoZ : data.cerradoZ }, 800).easing(TWEEN.Easing.Cubic.InOut).start();
                 else if (data.tipo === 'tapa_asador') new TWEEN.Tween(data.grupo.rotation).to({ x: targetAbierto ? data.rotX_abierto : data.rotX_cerrado }, duration).easing(TWEEN.Easing.Back.Out).start();
                 else if (data.tipo === 'cortina') new TWEEN.Tween(data.meshVisual.scale).to({ y: targetAbierto ? data.escala_abierto : data.escala_cerrado }, 1000).easing(TWEEN.Easing.Cubic.InOut).start();
                 data.abierto = targetAbierto;
