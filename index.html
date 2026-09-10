@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-    <title>Visualizador 3D Interactivo - Patio Mineral Orgánico INDEX 19.5</title>
+    <title>Visualizador 3D Interactivo - Patio Mineral Orgánico INDEX 19.6</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; overflow: hidden; background-color: #5c7e9c; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; touch-action: none; user-select: none; }
@@ -20,9 +20,9 @@
         }
 
         #ui-muros-container { position: fixed; top: 20px; right: 16px; z-index: 40; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
-        #btn-toggle-muros, #btn-toggle-techo-lavanderia, #btn-toggle-muro-falso, #btn-toggle-frentes-barra { padding: 10px 18px; background-color: #0f172a; color: #ffffff; border: 1.5px solid #334155; border-radius: 20px; font-size: 13px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); display: flex; align-items: center; gap: 6px; backdrop-filter: blur(6px); transition: all 0.2s ease; white-space: nowrap; }
-        #btn-toggle-muros:hover, #btn-toggle-techo-lavanderia:hover, #btn-toggle-muro-falso:hover, #btn-toggle-frentes-barra:hover { background-color: #1e293b; }
-        #btn-toggle-techo-lavanderia, #btn-toggle-muro-falso, #btn-toggle-frentes-barra { min-width: 190px; justify-content: center; }
+        #btn-toggle-muros, #btn-toggle-techo-lavanderia, #btn-toggle-muro-falso, #btn-toggle-frentes-barra, #btn-toggle-ventanal { padding: 10px 18px; background-color: #0f172a; color: #ffffff; border: 1.5px solid #334155; border-radius: 20px; font-size: 13px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); display: flex; align-items: center; gap: 6px; backdrop-filter: blur(6px); transition: all 0.2s ease; white-space: nowrap; }
+        #btn-toggle-muros:hover, #btn-toggle-techo-lavanderia:hover, #btn-toggle-muro-falso:hover, #btn-toggle-frentes-barra:hover, #btn-toggle-ventanal:hover { background-color: #1e293b; }
+        #btn-toggle-techo-lavanderia, #btn-toggle-muro-falso, #btn-toggle-frentes-barra, #btn-toggle-ventanal { min-width: 190px; justify-content: center; }
         #estado-techo-lavanderia { margin-left: 3px; font-size: 10px; opacity: 0.75; }
         #btn-toggle-muros:hover { background-color: #1e293b; }
         #menu-muros { display: none; margin-top: 8px; background: rgba(15, 23, 42, 0.92); color: #ffffff; padding: 14px 16px; border-radius: 14px; box-shadow: 0 6px 20px rgba(0,0,0,0.4); backdrop-filter: blur(8px); border: 1px solid #334155; min-width: 170px; animation: fadeInMenu 0.2s ease-out; }
@@ -82,7 +82,7 @@
 <body>
 
     <div id="canvas-container"></div>
-    <div id="version-indicator">INDEX 19.5</div>
+    <div id="version-indicator">INDEX 19.6</div>
     <div id="instrucciones">Toca la puerta corrediza, asador, cajones, repisas y persiana.<br>Arrastra 360° para rotar | Pellizca / Rueda para zoom</div>
 
     <div id="ui-muros-container">
@@ -103,6 +103,7 @@
         </button>
         <button id="btn-toggle-muro-falso" type="button">Muro falso <span id="estado-muro-falso">ON</span></button>
         <button id="btn-toggle-frentes-barra" type="button">Frentes barra <span id="estado-frentes-barra">LISOS</span></button>
+        <button id="btn-toggle-ventanal" type="button">Ventanal <span id="estado-ventanal">CERRADO</span></button>
     </div>
 
     <button id="btn-ficha">
@@ -127,7 +128,7 @@
                 const d = document.createElement('div');
                 d.className = 'load-error';
                 d.style.cssText = 'position:absolute;inset:70px 20px auto 20px;z-index:100;background:#0f172a;color:#fff;padding:18px;border-radius:14px;font:600 14px/1.45 sans-serif;text-align:center;';
-                d.textContent = 'Error de carga del visualizador. INDEX 19.5';
+                d.textContent = 'Error de carga del visualizador. INDEX 19.6';
                 c.appendChild(d);
             }
         });
@@ -137,7 +138,7 @@
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-        // INDEX 19.5: cajonera Oeste + 2 repisas extraíbles totales + cajones inferiores completos.
+        // INDEX 19.6: cajonera Oeste + 2 repisas extraíbles totales + cajones inferiores completos.
         const TWEEN = (() => {
             const active = new Set();
             const Easing = {
@@ -516,6 +517,7 @@
         });
 
         const objetosInteractivos = [];
+        const ventanalesMoviles = [];
         const frentesGabinetesBarra=[];
         let muroFalsoFrenteGroup=null;
         const masterGroup = new THREE.Group(); scene.add(masterGroup);
@@ -640,6 +642,7 @@
                 };
                 hojaGroup.add(hit);
                 objetosInteractivos.push(hit);
+                ventanalesMoviles.push(hojaGroup);
             }
 
             ventanaGroup.add(hojaGroup);
@@ -653,8 +656,8 @@
         const distSH = CONFIG.muroOeste.largoTotal - (distNH + wHO); // 87 cm restantes hacia Sur.
         const distPH = CONFIG.muroOeste.distanciaPisoHueco, altoHO = CONFIG.muroOeste.altoHueco, altoDO = CONFIG.muroOeste.alto - (distPH + altoHO); 
         
-        const muroON = crearCaja(grosorMuro, CONFIG.muroOeste.alto, distNH, matMuro); muroON.position.set(-grosorMuro / 2, CONFIG.muroOeste.alto / 2, distNH / 2); muroOesteGroup.add(muroON);
-        const muroOS = crearCaja(grosorMuro, CONFIG.muroOeste.alto, distSH, matMuro); muroOS.position.set(-grosorMuro / 2, CONFIG.muroOeste.alto / 2, distNH + wHO + distSH / 2); muroOesteGroup.add(muroOS);
+        const muroON = crearCaja(grosorMuro, CONFIG.muroOeste.alto, distNH, matBlancoExterior); muroON.position.set(-grosorMuro / 2, CONFIG.muroOeste.alto / 2, distNH / 2); muroOesteGroup.add(muroON);
+        const muroOS = crearCaja(grosorMuro, CONFIG.muroOeste.alto, distSH, matBlancoExterior); muroOS.position.set(-grosorMuro / 2, CONFIG.muroOeste.alto / 2, distNH + wHO + distSH / 2); muroOesteGroup.add(muroOS);
         const anteO = crearCaja(grosorMuro, distPH, wHO, matBlancoExterior); anteO.position.set(-grosorMuro / 2, distPH / 2, distNH + wHO / 2); muroOesteGroup.add(anteO);
         const dinO = crearCaja(grosorMuro, altoDO, wHO, matBlancoExterior); dinO.position.set(-grosorMuro / 2, distPH + altoHO + altoDO / 2, distNH + wHO / 2); muroOesteGroup.add(dinO);
         
@@ -706,9 +709,29 @@
             [-16.36, 499.83], [22.94, 518], [195.34, 518], [195.34, 430.91], [410, 418.91]
         ];
         grupoMuroSur.add(crearMuroExtruidoEnXZ(muroSurPtsContinuos, 316, matBlancoExterior));
+        // Acabado interior: estuco natural beige únicamente sobre la cara que mira al patio.
+        // El cuerpo/espesor/exterior permanece blanco.
+        function agregarEstucoInteriorMuroSur(pts, altura, grosor = 0.18) {
+            const g = new THREE.Group();
+            for (let i = 0; i < pts.length; i++) {
+                const a = pts[i], b = pts[(i + 1) % pts.length];
+                const dx = b[0] - a[0], dz = b[1] - a[1];
+                const len = Math.hypot(dx, dz);
+                if (len < 0.5) continue;
+                const strip = crearCaja(len, altura, grosor, matEstucoInteriorBeige);
+                strip.rotation.y = Math.atan2(-dz, dx);
+                // Polígono horario: la normal derecha apunta hacia el interior.
+                const nx = dz / len, nz = -dx / len;
+                strip.position.set((a[0] + b[0]) / 2 + nx * grosor / 2, altura / 2, (a[1] + b[1]) / 2 + nz * grosor / 2);
+                strip.name = 'Estuco_Interior_Beige_Muro_Sur';
+                g.add(strip);
+            }
+            grupoMuroSur.add(g);
+        }
+        agregarEstucoInteriorMuroSur(muroSurPtsContinuos, 316);
         const estucoNorteInterior=new THREE.Mesh(new THREE.ExtrudeGeometry(shapeMuroNorte,{depth:0.18,bevelEnabled:false}),matEstucoInteriorBeige); estucoNorteInterior.position.z=-0.18; grupoMuroNorte.add(estucoNorteInterior);
         const estucoEsteN=crearCaja(0.18,316,110,matEstucoInteriorBeige); estucoEsteN.position.set(389.91,158,55); grupoMuroEste.add(estucoEsteN);
-        const estucoEsteV=crearCaja(0.18,316,265,matEstucoInteriorBeige); estucoEsteV.position.set(389.91,158,242.5); grupoMuroEste.add(estucoEsteV);
+        const estucoEsteV=crearCaja(0.18,316-CONFIG.muroEste.alturaVidrio,265,matEstucoInteriorBeige); estucoEsteV.position.set(389.91,CONFIG.muroEste.alturaVidrio+(316-CONFIG.muroEste.alturaVidrio)/2,242.5); grupoMuroEste.add(estucoEsteV);
         const estucoEsteS=crearCaja(0.18,316,25,matEstucoInteriorBeige); estucoEsteS.position.set(389.91,158,387.5); grupoMuroEste.add(estucoEsteS);
         const estucoOesteInf=crearCaja(0.18,distPH,wHO,matEstucoInteriorBeige); estucoOesteInf.position.set(0.09,distPH/2,distNH+wHO/2); muroOesteGroup.add(estucoOesteInf);
         const estucoOesteSup=crearCaja(0.18,altoDO,wHO,matEstucoInteriorBeige); estucoOesteSup.position.set(0.09,distPH+altoHO+altoDO/2,distNH+wHO/2); muroOesteGroup.add(estucoOesteSup);
@@ -786,7 +809,7 @@
             // =====================================================================
             // 
             // =====================================================================
-            // CAJONERA — MÓDULO OESTE — INDEX 19.5
+            // CAJONERA — MÓDULO OESTE — INDEX 19.6
             // =====================================================================
             // Se conserva la geometría de 17.9 y se corrige la cajonera para que
             // no existan huecos entre frentes ni un espacio entre cajones y tapa.
@@ -1117,7 +1140,21 @@
             contactoLavanderia.add(ranuraLav2);
             nichoSurGroup.add(contactoLavanderia);
 
-            // Cielo interior con pendiente 1%, coordinado con piso y techo.
+            // =====================================================================
+            // TECHO DE LAVANDERÍA — 1% DE PENDIENTE Y ESPESOR VARIABLE
+            // Cara inferior interior plana a 220 cm; cara superior con pendiente 1%.
+            // Espesor total: 2.00 cm al frente y aumenta progresivamente hacia el fondo.
+            // =====================================================================
+            const grosorDurockTecho=1.0, grosorImpermeabilizanteTecho=0.35, grosorMicrocementoTecho=0.65;
+            const grosorTechoFrente=grosorDurockTecho+grosorImpermeabilizanteTecho+grosorMicrocementoTecho; // 2.00 cm
+            const zFrontRoof=394.8, zBackRoof=498.0;
+            const pendienteTecho=0.01;
+            const yCaraInferiorTecho=220.0;
+            function getRoofBottomAtZ(z){return yCaraInferiorTecho;}
+            function getRoofTopAtZ(z){return yCaraInferiorTecho+grosorTechoFrente+(z-zFrontRoof)*pendienteTecho;}
+
+            // Cielo interior completamente cerrado y horizontal para que la pendiente
+            // no genere huecos visuales en el interior del cobertizo.
             const shapePlanoCloset = new THREE.Shape();
             shapePlanoCloset.moveTo(v0[0], v0[1]);
             shapePlanoCloset.lineTo(v1[0], v1[1]);
@@ -1125,18 +1162,13 @@
             shapePlanoCloset.lineTo(v3[0], v3[1]);
             shapePlanoCloset.lineTo(v4[0], v4[1]);
             shapePlanoCloset.closePath();
-
-            const geomPlanoCloset=new THREE.ShapeGeometry(shapePlanoCloset); const posPC=geomPlanoCloset.attributes.position;
-            for(let i=0;i<posPC.count;i++){const z=posPC.getY(i);posPC.setXYZ(i,posPC.getX(i),220.0+((z-370.0)*0.01)-0.15,z);}
-            posPC.needsUpdate=true; geomPlanoCloset.computeVertexNormals(); cieloRasoLavanderia=new THREE.Mesh(geomPlanoCloset,matMicrocemento); cieloRasoLavanderia.name='Cielo_Raso_Lavanderia_Pendiente_1pct'; nichoSurGroup.add(cieloRasoLavanderia);
-
-            // =========================================================================
-            // TECHO NEGRO MATE CON ALERO FRONTAL 20 CM (Z = 380) Y PENDIENTE FRONTAL
-            // =========================================================================
-            const grosorDurockTecho=1.2, grosorImpermeabilizanteTecho=0.35, grosorMicrocementoTecho=0.65;
-            const grosorTecho=grosorDurockTecho+grosorImpermeabilizanteTecho+grosorMicrocementoTecho;
-            const zFrontRoof=370.0, zBackRoof=498.0;
-            function getRoofBottomAtZ(z){return 220.0+(z-zFrontRoof)*0.01;}
+            const geomPlanoCloset=new THREE.ShapeGeometry(shapePlanoCloset);
+            const posPC=geomPlanoCloset.attributes.position;
+            for(let i=0;i<posPC.count;i++){const z=posPC.getY(i);posPC.setXYZ(i,posPC.getX(i),yCaraInferiorTecho-0.05,z);}
+            posPC.needsUpdate=true; geomPlanoCloset.computeVertexNormals();
+            cieloRasoLavanderia=new THREE.Mesh(geomPlanoCloset,matMicrocemento);
+            cieloRasoLavanderia.name='Cielo_Raso_Lavanderia_Cerrado';
+            nichoSurGroup.add(cieloRasoLavanderia);
 
             // =====================================================================
             // PANEL DIVISOR VERTICAL CENTRAL DEL COBERTIZO DE LAVANDERÍA
@@ -1215,11 +1247,32 @@
             // Paquete de techo: Durock + membrana impermeabilizante + microcemento negro mate. Pendiente 1%.
             const v0_RoofExt=[v0[0],zFrontRoof],v1_RoofExt=[v1[0],zBackRoof],v2_RoofExt=[v2[0],zBackRoof],v3_RoofExt=[v3[0],v3[1]],v4_RoofExt=[v4[0],zFrontRoof];
             const shapeTechoFront=new THREE.Shape(); shapeTechoFront.moveTo(v0_RoofExt[0],v0_RoofExt[1]); shapeTechoFront.lineTo(v1_RoofExt[0],v1_RoofExt[1]); shapeTechoFront.lineTo(v2_RoofExt[0],v2_RoofExt[1]); shapeTechoFront.lineTo(v3_RoofExt[0],v3_RoofExt[1]); shapeTechoFront.lineTo(v4_RoofExt[0],v4_RoofExt[1]); shapeTechoFront.closePath();
-            function crearCapaTecho(material,espesor,offset,nombre){const geom=new THREE.ExtrudeGeometry(shapeTechoFront,{depth:espesor,bevelEnabled:false});const pos=geom.attributes.position;for(let i=0;i<pos.count;i++){const z=pos.getY(i);pos.setXYZ(i,pos.getX(i),getRoofBottomAtZ(z)+offset+pos.getZ(i),z);}pos.needsUpdate=true;geom.computeVertexNormals();const mesh=new THREE.Mesh(geom,material);mesh.name=nombre;mesh.castShadow=true;mesh.receiveShadow=true;return mesh;}
-            const losaDurock=crearCapaTecho(matDurock,grosorDurockTecho,0,'Durock_Techo_Lavanderia');
+            // Cada capa sigue la pendiente superior del 1%; el espesor total aumenta
+            // desde 2 cm en el frente hasta 3.28 cm en el fondo, sin cambiar la cara inferior.
+            function crearCapaTecho(material,espesorFrente,espesorBackExtra,offsetInferior,nombre){
+                const geom=new THREE.ExtrudeGeometry(shapeTechoFront,{depth:1,bevelEnabled:false});
+                const pos=geom.attributes.position;
+                for(let i=0;i<pos.count;i++){
+                    const z=pos.getY(i);
+                    const t=Math.max(0,Math.min(1,(z-zFrontRoof)/(zBackRoof-zFrontRoof)));
+                    const espesorLocal=espesorFrente+espesorBackExtra*t;
+                    const yBase=yCaraInferiorTecho+offsetInferior;
+                    const yTop=yBase+espesorLocal;
+                    const capa=pos.getZ(i);
+                    pos.setXYZ(i,pos.getX(i),capa<0.5?yBase:yTop,z);
+                }
+                pos.needsUpdate=true; geom.computeVertexNormals();
+                const mesh=new THREE.Mesh(geom,material); mesh.name=nombre; mesh.castShadow=true; mesh.receiveShadow=true; return mesh;
+            }
+            // El espesor adicional total se distribuye proporcionalmente entre las tres capas.
+            const incrementoTotalEspesor=pendienteTecho*(zBackRoof-zFrontRoof); // 1.28 cm
+            const incrementoDurock=incrementoTotalEspesor*(grosorDurockTecho/grosorTechoFrente);
+            const incrementoImpermeable=incrementoTotalEspesor*(grosorImpermeabilizanteTecho/grosorTechoFrente);
+            const incrementoMicrocemento=incrementoTotalEspesor*(grosorMicrocementoTecho/grosorTechoFrente);
+            const losaDurock=crearCapaTecho(matDurock,grosorDurockTecho,incrementoDurock,0,'Durock_Techo_Lavanderia');
             const matMembranaImpermeable=new THREE.MeshStandardMaterial({color:0x101010,roughness:0.78});
-            const capaImpermeable=crearCapaTecho(matMembranaImpermeable,grosorImpermeabilizanteTecho,grosorDurockTecho,'Membrana_Impermeable_Techo');
-            const losaTechoLavanderia=crearCapaTecho(matMicrocemento,grosorMicrocementoTecho,grosorDurockTecho+grosorImpermeabilizanteTecho,'Techo_Lavanderia_Microcemento_Negro_Mate');
+            const capaImpermeable=crearCapaTecho(matMembranaImpermeable,grosorImpermeabilizanteTecho,incrementoImpermeable,grosorDurockTecho,'Membrana_Impermeable_Techo');
+            const losaTechoLavanderia=crearCapaTecho(matMicrocemento,grosorMicrocementoTecho,incrementoMicrocemento,grosorDurockTecho+grosorImpermeabilizanteTecho,'Techo_Lavanderia_Microcemento_Negro_Mate');
             const paqueteTechoLavanderia=new THREE.Group(); paqueteTechoLavanderia.name='Paquete_Techo_Lavanderia'; paqueteTechoLavanderia.add(losaDurock,capaImpermeable,losaTechoLavanderia); techoLavanderia=paqueteTechoLavanderia; nichoSurGroup.add(paqueteTechoLavanderia); zanjaTechoLavanderia=null;
 
             // Canaleta, zanja, sumidero y tubo bajante eliminados.
@@ -1302,7 +1355,7 @@
             // La hoja termina exactamente contra el riel. El conjunto se coordina
             // con la pendiente del techo para que no aparezca una abertura triangular.
             const yTechoSobreRiel = getRoofBottomAtZ(zPlanoPuerta);
-            const yTopPuerta = yTechoSobreRiel + 4.0;
+            const yTopPuerta = yTechoSobreRiel + profundidadEmbebidoRiel;
             const yInferiorRiel = yTopPuerta;
             const hPuertaCorrediza = yInferiorRiel - yBasePuerta;
             const hojaCorrediza = crearCaja(
@@ -1317,14 +1370,14 @@
             hojaCorrediza.receiveShadow = true;
             puertaCorredizaGroup.add(hojaCorrediza);
 
-            const largoRiel=390.0-v4[0]+4.0;
+            const largoRiel = (wPuertaCorrediza * 2.0) + 4.0;
             // Riel continuo: queda en el mismo plano del muro falso. Su cuerpo se
-            // representa embutido 4 cm en el paquete de techo y el sello cierra
+            // representa embutido 2 cm en el paquete de techo y el sello cierra
             // cualquier paso de agua alrededor del encuentro.
-            const profundidadEmbebidoRiel = 4.0;
+            const profundidadEmbebidoRiel = 2.0;
             const rielCorredizo=crearCaja(largoRiel,1.8,2.4,matAceroOscuro);
-            rielCorredizo.position.set(v4[0]+largoRiel/2-2.0,yTechoSobreRiel+0.9,zFrentePocket);
-            rielCorredizo.name='Riel_Continuo_Enrasado_Muro_Falso_Embebido_4cm';
+            rielCorredizo.position.set(v4[0]+largoRiel/2,yTechoSobreRiel+0.9,zFrentePocket);
+            rielCorredizo.name='Riel_Continuo_Enrasado_Muro_Falso_Embebido_2cm';
             nichoSurGroup.add(rielCorredizo);
             const selloRiel=crearCaja(largoRiel+1,0.8,3.8,matMicrocemento);
             selloRiel.position.set(rielCorredizo.position.x,yTechoSobreRiel+0.15,zFrentePocket);
@@ -1335,7 +1388,7 @@
             // oculta el riel fijo sin alterar el recorrido de la puerta.
             muroFalsoFrenteGroup=new THREE.Group(); muroFalsoFrenteGroup.name='Muro_Falso_Frente_Puerta_Corrediza';
             const muroFrentePocket=crearCaja(anchoPocket,hFrentePocket,grosorFrentePocket,matBlancoExterior); muroFrentePocket.position.set(v0[0]+anchoPocket/2,hFrentePocket/2,zFrentePocket); muroFalsoFrenteGroup.add(muroFrentePocket);
-            const dintelPocket=crearCaja(largoRiel,altoRielCorredizo,grosorFrentePocket,matBlancoExterior); dintelPocket.position.set((v0[0]+v4[0])/2+(wPuertaCorrediza+4.0)/2,yTechoSobreRiel+altoRielCorredizo/2,zFrentePocket); muroFalsoFrenteGroup.add(dintelPocket);
+            const dintelPocket=crearCaja(anchoPocket,altoRielCorredizo,grosorFrentePocket,matBlancoExterior); dintelPocket.position.set(v0[0]+anchoPocket/2,yTechoSobreRiel+altoRielCorredizo/2,zFrentePocket); muroFalsoFrenteGroup.add(dintelPocket);
 
             // Cierre superior real del pocket: tapa horizontalmente toda la cavidad
             // entre el frente falso y el plano de la puerta. Se integra con la coronación
@@ -1498,7 +1551,7 @@
         if (profRestanteAtras > 0) { const cubAtrasAsador = crearCaja(wAsador, topH, profRestanteAtras, matMicrocemento); cubAtrasAsador.position.set(posX_ModAsador + wAsador / 2, CONFIG.barra.altoTotal - topH / 2, profRestanteAtras / 2); grupoMuroNorte.add(cubAtrasAsador); }
 
         // =====================================================================
-        // CIERRE COMPLETO DE LA BARRA NORTE — INDEX 19.5
+        // CIERRE COMPLETO DE LA BARRA NORTE — INDEX 19.6
         // =====================================================================
         // La cubierta debe cubrir exactamente toda la barra de 274 cm de ancho,
         // incluidos los pilares laterales. Se añade una pieza continua para evitar
@@ -1801,6 +1854,16 @@
 
         const btnMuroFalso=document.getElementById('btn-toggle-muro-falso'),estadoMuroFalso=document.getElementById('estado-muro-falso'); btnMuroFalso.addEventListener('click',e=>{e.stopPropagation();if(!muroFalsoFrenteGroup)return;muroFalsoFrenteGroup.visible=!muroFalsoFrenteGroup.visible;estadoMuroFalso.textContent=muroFalsoFrenteGroup.visible?'ON':'OFF';});
         const btnFrentesBarra=document.getElementById('btn-toggle-frentes-barra'),estadoFrentesBarra=document.getElementById('estado-frentes-barra'); btnFrentesBarra.addEventListener('click',e=>{e.stopPropagation();const l=estadoFrentesBarra.textContent!=='LISTONADOS';frentesGabinetesBarra.forEach(m=>m.material=l?matPVCListonadoMadera:matTKPVC);estadoFrentesBarra.textContent=l?'LISTONADOS':'LISOS';});
+        const btnVentanal=document.getElementById('btn-toggle-ventanal'),estadoVentanal=document.getElementById('estado-ventanal');
+        btnVentanal.addEventListener('click',e=>{
+            e.stopPropagation();
+            const abrir=estadoVentanal.textContent!=='ABIERTO';
+            ventanalesMoviles.forEach((g,i)=>{
+                const destino = abrir ? zCerrado[0] : zCerrado[i+1];
+                new TWEEN.Tween(g.position).to({z:destino},650).easing(TWEEN.Easing.Cubic.Out).start();
+            });
+            estadoVentanal.textContent=abrir?'ABIERTO':'CERRADO';
+        });
 
         const raycaster = new THREE.Raycaster(), mouse = new THREE.Vector2(); let pointerDownPos = { x: 0, y: 0 };
         window.addEventListener('pointerdown', (e) => pointerDownPos = { x: e.clientX, y: e.clientY });
@@ -1815,6 +1878,7 @@
                 const data = obj.userData; if (!data) return;
                 const duration = 650, targetAbierto = !data.abierto;
                 if (data.tipo === 'extraible') new TWEEN.Tween(data.grupo.position).to({ z: targetAbierto ? data.posZ_abierto : data.posZ_cerrado }, duration).easing(TWEEN.Easing.Cubic.Out).start();
+                else if (data.tipo === 'ventanal_movil') new TWEEN.Tween(data.grupo.position).to({ z: targetAbierto ? data.abiertoZ : data.cerradoZ }, duration).easing(TWEEN.Easing.Cubic.Out).start();
                 else if (data.tipo === 'puerta' || data.tipo === 'puerta_louver') new TWEEN.Tween(data.grupo.rotation).to({ y: targetAbierto ? data.rotY_abierto : data.rotY_cerrado }, duration).easing(TWEEN.Easing.Cubic.Out).start();
                 else if (data.tipo === 'puerta_corrediza') new TWEEN.Tween(data.grupo.position).to({ x: targetAbierto ? data.posX_abierto : data.posX_cerrado }, 800).easing(TWEEN.Easing.Cubic.InOut).start();
                 else if (data.tipo === 'tapa_asador') new TWEEN.Tween(data.grupo.rotation).to({ x: targetAbierto ? data.rotX_abierto : data.rotX_cerrado }, duration).easing(TWEEN.Easing.Back.Out).start();
@@ -1888,7 +1952,7 @@
                             <li><strong>Muro Este:</strong> 400 cm totales (Ventanal de 265 cm).</li>
                             <li><strong>Muro Oeste:</strong> 487 cm de longitud; altura total 260 cm, con 100 cm de muro inferior + 100 cm de vano + 60 cm de muro superior; vano de 300 cm.</li>
                             <li><strong>Muro Sur 1:</strong> Tramo de 215 cm de longitud ejecutado en bastidor de acero galvanizado con panel de cemento Durock de 1/2''.</li>
-                            <li><strong>Cobertizo Sur:</strong> Lavandería con puerta corrediza única de PVC madera lisa, pocket al Este, cubierta negra mate con captación pluvial y torre de lavado.</li>
+                            <li><strong>Cobertizo Sur:</strong> Lavandería con puerta corrediza única de PVC madera lisa, pocket al Este, cubierta negra mate con Durock + membrana impermeabilizante + microcemento negro mate, pendiente 1%, sin canaleta ni bajante, y torre de lavado.</li>
                         </ul>
                     </div>
                     <div class="data-section">
