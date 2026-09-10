@@ -778,13 +778,13 @@
             // no existan huecos entre frentes ni un espacio entre cajones y tapa.
             // El ancho útil REAL del módulo Oeste en 17.9 es el tramo entre
             // xPanelOesteInicio y xDivisorGeometrico.
-            // 2 columnas x 2 filas, frentes de 25 cm, zoclo inferior de 10 cm.
+            // 2 columnas x 3 filas, frentes de 35 / 25 / 16 cm, zoclo inferior de 10 cm.
             // Cuerpo de 60 cm: quedan 26 cm libres al frente.
             // El zoclo queda retranqueado 10 cm respecto al frente de los cajones.
             // Panel superior negro horizontal inmediatamente sobre los cajones.
 
             const cajoneraOesteGroup = new THREE.Group();
-            cajoneraOesteGroup.name = 'Cajonera_Oeste_4_Cajones';
+            cajoneraOesteGroup.name = 'Cajonera_Oeste_6_Cajones';
 
             const anchoCajonera = Math.max(1, anchoPanelOeste);
             const profundidadCuerpoCajonera = 60.0;
@@ -898,7 +898,7 @@
                 zFondoCajonera - espEstructuraCajonera / 2
             );
 
-            // Frentes: exactamente 25 cm de alto y sin huecos verticales.
+            // Frentes: exactamente 35 / 25 / 16 cm por fila y sin huecos verticales.
             // En cada columna el frente llega hasta el divisor/lateral.
             const anchoFrenteExacto =
                 Math.max(0.5, anchoColumnaCajonera - espEstructuraCajonera);
@@ -1014,6 +1014,88 @@
             panelSuperiorCajonera.receiveShadow = true;
             panelSuperiorCajonera.name = 'Panel_Negro_Cierre_Superior';
             cajoneraOesteGroup.add(panelSuperiorCajonera);
+
+            // =====================================================================
+            // 2 REPISAS DE EXTRACCIÓN TOTAL — MÓDULO OESTE — INDEX 19.2
+            // =====================================================================
+            // Dos repisas, a todo lo ancho del módulo, con 40 cm de profundidad.
+            // La primera queda 50 cm libres sobre la cubierta negra de la cajonera.
+            // La segunda queda 42 cm arriba de la primera. La parte superior del módulo
+            // queda como techo; no se agrega una tercera repisa.
+            // La extracción total permite desplazar cada repisa hacia el frente
+            // exactamente su profundidad (40 cm).
+            const profundidadRepisa = 40.0;
+            const espRepisa = 2.0;
+            const alturaSobreCubierta = 50.0;
+            const separacionEntreRepisas = 42.0;
+            const ySuperiorCubiertaNegra =
+                yPanelSuperior + espPanelSuperior / 2;
+
+            // La distancia se mide desde la cara superior de la cubierta negra
+            // hasta la cara inferior de la primera repisa.
+            const yInferiorPrimeraRepisa =
+                ySuperiorCubiertaNegra + alturaSobreCubierta;
+
+            const yCentrosRepisas = [
+                yInferiorPrimeraRepisa + espRepisa / 2,
+                yInferiorPrimeraRepisa + separacionEntreRepisas + espRepisa / 2
+            ];
+
+            const zFrenteRepisa = zFrenteCajonera;
+            const zCentroRepisa = zFrenteRepisa + profundidadRepisa / 2;
+
+            const matRepisa = matTecaLisa;
+
+            yCentrosRepisas.forEach((yRepisa, indice) => {
+                const grupoRepisa = new THREE.Group();
+                grupoRepisa.name = `Repisa_Extraible_Total_${indice + 1}`;
+
+                const repisa = new THREE.Mesh(
+                    new THREE.BoxGeometry(
+                        anchoCajonera,
+                        espRepisa,
+                        profundidadRepisa
+                    ),
+                    matRepisa
+                );
+                repisa.position.set(
+                    xCentroCajonera,
+                    0,
+                    0
+                );
+                repisa.castShadow = true;
+                repisa.receiveShadow = true;
+                repisa.name = `Repisa_${indice + 1}`;
+                grupoRepisa.add(repisa);
+
+                // Hitbox invisible para activar la extracción total de cada repisa.
+                const hitRepisa = new THREE.Mesh(
+                    new THREE.BoxGeometry(
+                        Math.max(1, anchoCajonera - 2),
+                        Math.max(1, espRepisa + 2),
+                        Math.max(1, profundidadRepisa - 2)
+                    ),
+                    new THREE.MeshBasicMaterial({
+                        transparent: true,
+                        opacity: 0,
+                        depthWrite: false
+                    })
+                );
+                hitRepisa.position.set(0, 0, 0);
+                grupoRepisa.add(hitRepisa);
+
+                hitRepisa.userData = {
+                    tipo: 'extraible',
+                    grupo: grupoRepisa,
+                    abierto: false,
+                    posZ_cerrado: 0,
+                    posZ_abierto: -profundidadRepisa
+                };
+
+                objetosInteractivos.push(hitRepisa);
+                grupoRepisa.position.set(xCentroCajonera, yRepisa, zCentroRepisa);
+                cajoneraOesteGroup.add(grupoRepisa);
+            });
 
             nichoSurGroup.add(cajoneraOesteGroup);
 
