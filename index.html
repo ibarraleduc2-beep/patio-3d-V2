@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-    <title>Visualizador 3D Interactivo - Patio Mineral Orgánico INDEX 19.2</title>
+    <title>Visualizador 3D Interactivo - Patio Mineral Orgánico INDEX 19.3</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; overflow: hidden; background-color: #5c7e9c; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; touch-action: none; user-select: none; }
@@ -82,7 +82,7 @@
 <body>
 
     <div id="canvas-container"></div>
-    <div id="version-indicator">INDEX 19.2</div>
+    <div id="version-indicator">INDEX 19.3</div>
     <div id="instrucciones">Toca la puerta corrediza, asador, cajones, repisas y persiana.<br>Arrastra 360° para rotar | Pellizca / Rueda para zoom</div>
 
     <div id="ui-muros-container">
@@ -125,7 +125,7 @@
                 const d = document.createElement('div');
                 d.className = 'load-error';
                 d.style.cssText = 'position:absolute;inset:70px 20px auto 20px;z-index:100;background:#0f172a;color:#fff;padding:18px;border-radius:14px;font:600 14px/1.45 sans-serif;text-align:center;';
-                d.textContent = 'Error de carga del visualizador. INDEX 19.2';
+                d.textContent = 'Error de carga del visualizador. INDEX 19.3';
                 c.appendChild(d);
             }
         });
@@ -135,7 +135,7 @@
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-        // INDEX 19.2: cajonera Oeste + 2 repisas extraíbles totales.
+        // INDEX 19.3: cajonera Oeste + 2 repisas extraíbles totales.
         const TWEEN = (() => {
             const active = new Set();
             const Easing = {
@@ -772,7 +772,7 @@
             // =====================================================================
             // 
             // =====================================================================
-            // CAJONERA — MÓDULO OESTE — INDEX 19.2
+            // CAJONERA — MÓDULO OESTE — INDEX 19.3
             // =====================================================================
             // Se conserva la geometría de 17.9 y se corrige la cajonera para que
             // no existan huecos entre frentes ni un espacio entre cajones y tapa.
@@ -928,7 +928,7 @@
                     grupoCajon.add(hitCajon);
                     hitCajon.userData = {
                         tipo: 'extraible', grupo: grupoCajon, abierto: false,
-                        posZ_cerrado: 0, posZ_abierto: -24
+                        posZ_cerrado: 0, posZ_abierto: -70
                     };
                     objetosInteractivos.push(hitCajon);
                     grupoCajon.position.set(x, yCentroFila, zCentroCuerpo);
@@ -976,7 +976,7 @@
             // -----------------------------------------------------------------
             // 2 REPISAS DE EXTRACCIÓN TOTAL — EXCLUSIVAMENTE MÓDULO OESTE
             // -----------------------------------------------------------------
-            const profundidadRepisa = 40.0;
+            const profundidadRepisa = 40.0; // 40 cm de fondo, ancladas al panel posterior
             const espRepisa = 2.0;
             const alturaSobreCubierta = 50.0;
             const separacionEntreRepisas = 42.0;
@@ -987,9 +987,9 @@
                 yInferiorPrimeraRepisa + separacionEntreRepisas + espRepisa / 2
             ];
 
-            // IMPORTANTE: el grupo y la geometría usan coordenadas locales.
-            // Así las repisas no se duplican/desplazan hacia el módulo Este.
-            const zCentroRepisa = zFrenteCajonera + profundidadRepisa / 2;
+            // IMPORTANTE: las repisas nacen y quedan apoyadas contra el panel de fondo,
+            // igual que los cajones. Se mantienen exclusivamente dentro del módulo Oeste.
+            const zCentroRepisa = zFondoCajonera - profundidadRepisa / 2;
             const matRepisa = matCajonNegro;
 
             yCentrosRepisas.forEach((yRepisa, indice) => {
@@ -1018,7 +1018,7 @@
                 grupoRepisa.add(hitRepisa);
                 hitRepisa.userData = {
                     tipo: 'extraible', grupo: grupoRepisa, abierto: false,
-                    posZ_cerrado: 0, posZ_abierto: -profundidadRepisa
+                    posZ_cerrado: 0, posZ_abierto: -60
                 };
                 objetosInteractivos.push(hitRepisa);
 
@@ -1117,7 +1117,7 @@
             for (let i = 0; i < posPC.count; i++) posPC.setXYZ(i, posPC.getX(i), 220.0, posPC.getY(i));
             posPC.needsUpdate = true;
             geomPlanoCloset.computeVertexNormals();
-            cieloRasoLavanderia = new THREE.Mesh(geomPlanoCloset, matMuro);
+            cieloRasoLavanderia = new THREE.Mesh(geomPlanoCloset, matMicrocemento);
             cieloRasoLavanderia.name = 'Cielo_Raso_Lavanderia';
             nichoSurGroup.add(cieloRasoLavanderia);
 
@@ -1190,7 +1190,7 @@
             ]);
             geomFaldonEste.setAttribute('position', new THREE.BufferAttribute(verticesEste, 3));
             geomFaldonEste.computeVertexNormals();
-            nichoSurGroup.add(new THREE.Mesh(geomFaldonEste, matMuro));
+            nichoSurGroup.add(new THREE.Mesh(geomFaldonEste, matMicrocemento));
 
             // Faldón Lateral Oeste (Alineado estrictamente al Muro Oeste)
             const geomFaldonOeste = new THREE.BufferGeometry();
@@ -1205,9 +1205,9 @@
             ]);
             geomFaldonOeste.setAttribute('position', new THREE.BufferAttribute(verticesOeste, 3));
             geomFaldonOeste.computeVertexNormals();
-            nichoSurGroup.add(new THREE.Mesh(geomFaldonOeste, matMuro));
+            nichoSurGroup.add(new THREE.Mesh(geomFaldonOeste, matMicrocemento));
 
-            // Losa sólida del techo: mismo acabado mineral de los muros.
+            // Losa sólida del techo: microcemento negro mate, igual que la barra.
             const v0_RoofExt = [v0[0], zFrontRoof];
             const v1_RoofExt = [v1[0], zBackRoof];
             const v2_RoofExt = [v2[0], zBackRoof];
@@ -1235,7 +1235,7 @@
             posRoof.needsUpdate = true;
             extrudeTechoGeom.computeVertexNormals();
             
-            const losaTechoLavanderia = new THREE.Mesh(extrudeTechoGeom, matMuro);
+            const losaTechoLavanderia = new THREE.Mesh(extrudeTechoGeom, matMicrocemento);
             losaTechoLavanderia.name = 'Techo_Lavanderia';
             losaTechoLavanderia.castShadow = true;
             losaTechoLavanderia.receiveShadow = true;
@@ -1546,7 +1546,7 @@
         if (profRestanteAtras > 0) { const cubAtrasAsador = crearCaja(wAsador, topH, profRestanteAtras, matMicrocemento); cubAtrasAsador.position.set(posX_ModAsador + wAsador / 2, CONFIG.barra.altoTotal - topH / 2, profRestanteAtras / 2); grupoMuroNorte.add(cubAtrasAsador); }
 
         // =====================================================================
-        // CIERRE COMPLETO DE LA BARRA NORTE — INDEX 19.2
+        // CIERRE COMPLETO DE LA BARRA NORTE — INDEX 19.3
         // =====================================================================
         // La cubierta debe cubrir exactamente toda la barra de 274 cm de ancho,
         // incluidos los pilares laterales. Se añade una pieza continua para evitar
