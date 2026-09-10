@@ -1355,6 +1355,7 @@
             // La hoja termina exactamente contra el riel. El conjunto se coordina
             // con la pendiente del techo para que no aparezca una abertura triangular.
             const yTechoSobreRiel = getRoofBottomAtZ(zPlanoPuerta);
+            const profundidadEmbebidoRiel = 2.0;
             const yTopPuerta = yTechoSobreRiel + profundidadEmbebidoRiel;
             const yInferiorRiel = yTopPuerta;
             const hPuertaCorrediza = yInferiorRiel - yBasePuerta;
@@ -1374,7 +1375,6 @@
             // Riel continuo: queda en el mismo plano del muro falso. Su cuerpo se
             // representa embutido 2 cm en el paquete de techo y el sello cierra
             // cualquier paso de agua alrededor del encuentro.
-            const profundidadEmbebidoRiel = 2.0;
             const rielCorredizo=crearCaja(largoRiel,1.8,2.4,matAceroOscuro);
             rielCorredizo.position.set(v4[0]+largoRiel/2,yTechoSobreRiel+0.9,zFrentePocket);
             rielCorredizo.name='Riel_Continuo_Enrasado_Muro_Falso_Embebido_2cm';
