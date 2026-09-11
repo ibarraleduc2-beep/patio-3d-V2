@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-    <title>Visualizador 3D Interactivo - Patio Mineral Orgánico INDEX 20.6</title>
+    <title>Visualizador 3D Interactivo - Patio Mineral Orgánico INDEX 30</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; overflow: hidden; background-color: #5c7e9c; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; touch-action: none; user-select: none; }
@@ -82,7 +82,7 @@
 <body>
 
     <div id="canvas-container"></div>
-    <div id="version-indicator">INDEX 20.6</div>
+    <div id="version-indicator">INDEX 30</div>
     <div id="instrucciones">Toca la puerta corrediza, asador, cajones, repisas y persiana.<br>Arrastra 360° para rotar | Pellizca / Rueda para zoom</div>
 
     <div id="ui-muros-container">
@@ -102,6 +102,10 @@
         <button id="btn-toggle-techo-lavanderia" type="button">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12 12 4l9 8"/><path d="M5 10v9h14v-9"/><path d="M9 19v-5h6v5"/></svg>
             Techo lavandería <span id="estado-techo-lavanderia">ON</span>
+        </button>
+        <button id="btn-toggle-modo-arquitectura" type="button">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16"/><path d="M6 20V8l6-4 6 4v12"/><path d="M9 20v-6h6v6"/></svg>
+            Solo arquitectura <span id="estado-modo-arquitectura">OFF</span>
         </button>
     </div>
 
@@ -127,7 +131,7 @@
                 const d = document.createElement('div');
                 d.className = 'load-error';
                 d.style.cssText = 'position:absolute;inset:70px 20px auto 20px;z-index:100;background:#0f172a;color:#fff;padding:18px;border-radius:14px;font:600 14px/1.45 sans-serif;text-align:center;';
-                d.textContent = 'Error de carga del visualizador. INDEX 20.6';
+                d.textContent = 'Error de carga del visualizador. INDEX 30';
                 c.appendChild(d);
             }
         });
@@ -137,7 +141,7 @@
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-        // INDEX 20.6: cajonera Oeste + 2 repisas extraíbles totales + cajones inferiores completos.
+        // INDEX 30: cajonera Oeste + 2 repisas extraíbles totales + cajones inferiores completos.
         const TWEEN = (() => {
             const active = new Set();
             const Easing = {
@@ -717,8 +721,10 @@
         let techoLavanderia = null;
         let cieloRasoLavanderia = null;
         let muroFalsoPocketGroup = null;
+        let nichoSurGroupGlobal = null;
+        let grupoRefrigeradorNorteGlobal = null;
         function construirCobertizoSur() {
-            const nichoSurGroup = new THREE.Group();
+            const nichoSurGroup = new THREE.Group(); nichoSurGroupGlobal = nichoSurGroup;
             const profDesague = 8;
             const hInteriorCloset = 220;
 
@@ -784,7 +790,7 @@
             // =====================================================================
             // 
             // =====================================================================
-            // CAJONERA — MÓDULO OESTE — INDEX 20.6
+            // CAJONERA — MÓDULO OESTE — INDEX 30
             // =====================================================================
             // Se conserva la geometría de 17.9 y se corrige la cajonera para que
             // no existan huecos entre frentes ni un espacio entre cajones y tapa.
@@ -1555,7 +1561,7 @@
         if (profRestanteAtras > 0) { const cubAtrasAsador = crearCaja(wAsador, topH, profRestanteAtras, matMicrocemento); cubAtrasAsador.position.set(posX_ModAsador + wAsador / 2, CONFIG.barra.altoTotal - topH / 2, profRestanteAtras / 2); grupoMuroNorte.add(cubAtrasAsador); }
 
         // =====================================================================
-        // CIERRE COMPLETO DE LA BARRA NORTE — INDEX 20.6
+        // CIERRE COMPLETO DE LA BARRA NORTE — INDEX 30
         // =====================================================================
         // La cubierta debe cubrir exactamente toda la barra de 274 cm de ancho,
         // incluidos los pilares laterales. Se añade una pieza continua para evitar
@@ -1627,7 +1633,7 @@
                 return mataGroup;
             }
             function crearMaceta(x, z, escala = 1) {
-                const maceta = new THREE.Group();
+                const maceta = new THREE.Group(); maceta.name = 'Mobiliario_Planta_Barra'; maceta.userData.esMobiliarioArquitectura = false;
                 const cuerpo = new THREE.Mesh(new THREE.CylinderGeometry(9 * escala, 7 * escala, 13 * escala, 24), new THREE.MeshStandardMaterial({ color: 0x29221d, roughness: 0.72 }));
                 cuerpo.position.y = 6.5 * escala;
                 maceta.add(cuerpo);
@@ -1686,7 +1692,7 @@
             const hitBoxPuertaDer = crearCaja(wPuerta, hGabinete - 0.2, 3, new THREE.MeshBasicMaterial({ visible: false })); hitBoxPuertaDer.position.set(-wPuerta / 2, hGabinete / 2, 0); pivotDer.add(hitBoxPuertaDer);
             grupoMuroNorte.add(pivotDer); hitBoxPuertaDer.userData = { tipo: 'puerta', grupo: pivotDer, abierto: false, rotY_cerrado: 0, rotY_abierto: Math.PI / 2 * 0.9 }; objetosInteractivos.push(hitBoxPuertaDer);
 
-            const asadorGroup = new THREE.Group(), posZ_AsadorCenter = profRestanteAtras + (profAsador / 2), posY_AsadorBase = posY_CubDebajoAsador + topH / 2 + (altoCuerpoAsador / 2);
+            const asadorGroup = new THREE.Group(); asadorGroup.name = 'Mobiliario_Asador_Barra'; const posZ_AsadorCenter = profRestanteAtras + (profAsador / 2), posY_AsadorBase = posY_CubDebajoAsador + topH / 2 + (altoCuerpoAsador / 2);
             const asadorBase = crearCaja(wAsador - (topH * 2) - 0.5, altoCuerpoAsador, profAsador, matAcero); asadorBase.position.set(centerX, posY_AsadorBase, posZ_AsadorCenter); asadorGroup.add(asadorBase);
             const panelFrontal = crearCaja(wAsador - (topH * 2) - 0.5, 12, 2, matAcero); panelFrontal.position.set(centerX, posY_AsadorBase - 1, topD + 1); asadorGroup.add(panelFrontal);
             for (let i = 0; i < 5; i++) {
@@ -1782,6 +1788,11 @@
             const marcoExtSup = crearCaja(wNicho + 9, 5.0, 4.0, matMicrocemento); marcoExtSup.position.set(centerX, hNichoTotal + 0.5, profNicho - 0.5); grupoNichoNorte.add(marcoExtSup);
 
             const refriW = 92, refriH = 180, refriD = 80;
+            // INDEX 30 — grupo independiente para poder retirar únicamente el refrigerador
+            // y conservar íntegro el nicho arquitectónico.
+            const grupoRefrigeradorNorte = new THREE.Group(); grupoRefrigeradorNorteGlobal = grupoRefrigeradorNorte;
+            grupoRefrigeradorNorte.name = 'Mobiliario_Refrigerador_Norte';
+            grupoNichoNorte.add(grupoRefrigeradorNorte);
             // Refrigerador French Door realista: cuerpo y cuatro superficies frontales
             // separadas para que las dos puertas superiores y el congelador sean visibles.
             const matRefriInox = new THREE.MeshStandardMaterial({ color: 0xe6e9e8, metalness: 0.72, roughness: 0.30, envMapIntensity: 1.55 });
@@ -1789,30 +1800,30 @@
             const matRefriSombra = new THREE.MeshStandardMaterial({ color: 0x777d7e, metalness: 0.45, roughness: 0.36 });
             const yRefriBase = CONFIG.barra.altoZocalo + 1.2;
             const zFrenteRefri = refriD + 8.5;
-            const refriBase = crearCaja(refriW, refriH, refriD, matRefriInox); refriBase.position.set(centerX, yRefriBase + refriH / 2, refriD / 2 + 5); grupoNichoNorte.add(refriBase);
+            const refriBase = crearCaja(refriW, refriH, refriD, matRefriInox); refriBase.position.set(centerX, yRefriBase + refriH / 2, refriD / 2 + 5); grupoRefrigeradorNorte.add(refriBase);
 
             const gap = 0.9;
             const upperH = 108, lowerH = 60;
             const upperY = yRefriBase + lowerH + upperH / 2 + 4;
             const lowerY = yRefriBase + lowerH / 2 + 1.5;
             const doorW = (refriW - gap) / 2;
-            const leftDoor = crearCaja(doorW, upperH, 2.0, matRefriInox); leftDoor.position.set(centerX - (doorW + gap) / 2, upperY, zFrenteRefri); grupoNichoNorte.add(leftDoor);
-            const rightDoor = crearCaja(doorW, upperH, 2.0, matRefriInox); rightDoor.position.set(centerX + (doorW + gap) / 2, upperY, zFrenteRefri + 0.1); grupoNichoNorte.add(rightDoor);
-            const freezer = crearCaja(refriW - 2, lowerH, 2.2, matRefriInox); freezer.position.set(centerX, lowerY, zFrenteRefri + 0.15); grupoNichoNorte.add(freezer);
-            const seamV = crearCaja(0.8, upperH - 5, 2.5, matRefriSombra); seamV.position.set(centerX, upperY, zFrenteRefri + 1.25); grupoNichoNorte.add(seamV);
-            const seamH = crearCaja(refriW - 3, 0.9, 2.5, matRefriSombra); seamH.position.set(centerX, yRefriBase + lowerH + 1.2, zFrenteRefri + 1.25); grupoNichoNorte.add(seamH);
+            const leftDoor = crearCaja(doorW, upperH, 2.0, matRefriInox); leftDoor.position.set(centerX - (doorW + gap) / 2, upperY, zFrenteRefri); grupoRefrigeradorNorte.add(leftDoor);
+            const rightDoor = crearCaja(doorW, upperH, 2.0, matRefriInox); rightDoor.position.set(centerX + (doorW + gap) / 2, upperY, zFrenteRefri + 0.1); grupoRefrigeradorNorte.add(rightDoor);
+            const freezer = crearCaja(refriW - 2, lowerH, 2.2, matRefriInox); freezer.position.set(centerX, lowerY, zFrenteRefri + 0.15); grupoRefrigeradorNorte.add(freezer);
+            const seamV = crearCaja(0.8, upperH - 5, 2.5, matRefriSombra); seamV.position.set(centerX, upperY, zFrenteRefri + 1.25); grupoRefrigeradorNorte.add(seamV);
+            const seamH = crearCaja(refriW - 3, 0.9, 2.5, matRefriSombra); seamH.position.set(centerX, yRefriBase + lowerH + 1.2, zFrenteRefri + 1.25); grupoRefrigeradorNorte.add(seamH);
 
             // Manijas verticales de las dos puertas francesas y manija horizontal del congelador.
             const handleV = new THREE.MeshStandardMaterial({ color: 0x4e5557, metalness: 0.96, roughness: 0.16 });
             function agregarManijaVertical(x) {
                 const h = new THREE.Mesh(new THREE.CylinderGeometry(1.15, 1.15, 78, 18), handleV);
-                h.position.set(x, upperY, zFrenteRefri + 3.2); grupoNichoNorte.add(h);
-                const a = crearCaja(2.2, 5, 5, handleV); a.position.set(x, upperY + 39, zFrenteRefri + 2.6); grupoNichoNorte.add(a);
-                const b = crearCaja(2.2, 5, 5, handleV); b.position.set(x, upperY - 39, zFrenteRefri + 2.6); grupoNichoNorte.add(b);
+                h.position.set(x, upperY, zFrenteRefri + 3.2); grupoRefrigeradorNorte.add(h);
+                const a = crearCaja(2.2, 5, 5, handleV); a.position.set(x, upperY + 39, zFrenteRefri + 2.6); grupoRefrigeradorNorte.add(a);
+                const b = crearCaja(2.2, 5, 5, handleV); b.position.set(x, upperY - 39, zFrenteRefri + 2.6); grupoRefrigeradorNorte.add(b);
             }
             agregarManijaVertical(centerX - 13);
             agregarManijaVertical(centerX + 13);
-            const handleF = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 48, 18), handleV); handleF.rotation.z = Math.PI / 2; handleF.position.set(centerX, lowerY + 3, zFrenteRefri + 3.2); grupoNichoNorte.add(handleF);
+            const handleF = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 48, 18), handleV); handleF.rotation.z = Math.PI / 2; handleF.position.set(centerX, lowerY + 3, zFrenteRefri + 3.2); grupoRefrigeradorNorte.add(handleF);
 
             const guialateralIzq = crearCaja(2.5, hNicho - 4, 3, matMicrocemento); guialateralIzq.position.set(startX + 2, CONFIG.barra.altoZocalo + (hNicho - 4) / 2, profNicho - 1.5); grupoNichoNorte.add(guialateralIzq);
             const guialateralDer = crearCaja(2.5, hNicho - 4, 3, matMicrocemento); guialateralDer.position.set(startX + wNicho - 2, CONFIG.barra.altoZocalo + (hNicho - 4) / 2, profNicho - 1.5); grupoNichoNorte.add(guialateralDer);
@@ -1867,6 +1878,100 @@
         const btnFrentesListon = document.getElementById('btn-toggle-frentes-liston');
         const estadoFrentesListon = document.getElementById('estado-frentes-liston');
         let frentesListonActivo = false;
+        // =========================================================================
+        // INDEX 30 — MODO "SOLO ARQUITECTURA"
+        // Deja visibles únicamente:
+        //   • muros perimetrales
+        //   • barra/cubierta estructural, sin PVC ni mobiliario
+        //   • nicho del refrigerador, sin refrigerador
+        //   • techo sólido del cobertizo
+        // Oculta: frentes y cuerpos de PVC, asador, plantas, refrigerador,
+        // lavadora/secadora, repisas, cajonera, puerta corrediza y accesorios.
+        // =========================================================================
+        const btnModoArquitectura = document.getElementById('btn-toggle-modo-arquitectura');
+        const estadoModoArquitectura = document.getElementById('estado-modo-arquitectura');
+        let modoArquitecturaActivo = false;
+        let visibilidadArquitecturaGuardada = null;
+
+        function guardarVisibilidadGrupo(grupo) {
+            const mapa = new Map();
+            grupo.traverse(obj => mapa.set(obj.uuid, obj.visible));
+            return mapa;
+        }
+
+        function restaurarVisibilidadGrupo(grupo, mapa) {
+            if (!mapa) return;
+            grupo.traverse(obj => {
+                if (mapa.has(obj.uuid)) obj.visible = mapa.get(obj.uuid);
+            });
+        }
+
+        function aplicarSoloArquitectura() {
+            if (modoArquitecturaActivo) return;
+
+            visibilidadArquitecturaGuardada = {
+                norte: guardarVisibilidadGrupo(grupoMuroNorte),
+                nicho: guardarVisibilidadGrupo(grupoNichoNorte),
+                sur: guardarVisibilidadGrupo(grupoMuroSur)
+            };
+
+            // 1) BARRA: conserva el muro Norte y únicamente las piezas estructurales
+            // de microcemento. Todo PVC, cuerpos de gabinete, asador y decoración desaparece.
+            grupoMuroNorte.traverse(obj => {
+                if (obj === meshMuroNorte) return;
+                if (obj.isMesh || obj.isGroup || obj.isObject3D) {
+                    const mat = obj.material;
+                    const esPVC = mat === matTKPVC || mat === matPVC ||
+                                  mat === matPVCListonadoFrentes ||
+                                  obj.userData?.esFrenteBarra === true;
+                    if (esPVC) obj.visible = false;
+                }
+            });
+
+            // El asador y las plantas no forman parte de la arquitectura permanente.
+            grupoMuroNorte.traverse(obj => {
+                if (obj.name === 'Mobiliario_Asador_Barra' ||
+                    obj.name === 'Mobiliario_Planta_Barra') {
+                    obj.visible = false;
+                }
+            });
+
+            // 2) NICHO: conserva la caja/revestimiento arquitectónico, pero elimina
+            // exclusivamente el refrigerador.
+            if (grupoRefrigeradorNorteGlobal) {
+                grupoRefrigeradorNorteGlobal.visible = false;
+            }
+
+            // 3) COBERTIZO: conserva solamente el techo sólido. Se eliminan puerta,
+            // lavadora/secadora, cajonera, repisas, paneles interiores y accesorios.
+            nichoSurGroupSoloArquitectura();
+
+            modoArquitecturaActivo = true;
+            estadoModoArquitectura.textContent = 'ON';
+        }
+
+        function nichoSurGroupSoloArquitectura() {
+            if (!nichoSurGroupGlobal) return;
+            nichoSurGroupGlobal.traverse(obj => {
+                // Solo el techo exterior completo permanece visible.
+                obj.visible = (obj === techoLavanderia);
+            });
+        }
+
+
+        btnModoArquitectura.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!modoArquitecturaActivo) {
+                aplicarSoloArquitectura();
+            } else {
+                restaurarVisibilidadGrupo(grupoMuroNorte, visibilidadArquitecturaGuardada?.norte);
+                restaurarVisibilidadGrupo(grupoNichoNorte, visibilidadArquitecturaGuardada?.nicho);
+                restaurarVisibilidadGrupo(grupoMuroSur, visibilidadArquitecturaGuardada?.sur);
+                modoArquitecturaActivo = false;
+                estadoModoArquitectura.textContent = 'OFF';
+            }
+        });
+
         btnFrentesListon.addEventListener('click', (e) => {
             e.stopPropagation(); frentesListonActivo = !frentesListonActivo;
             for (const mesh of frentesBarraRegistrados) mesh.material = frentesListonActivo ? matPVCListonadoFrentes : matTKPVC;
