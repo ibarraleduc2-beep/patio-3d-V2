@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-    <title>Visualizador 3D Interactivo - Patio Mineral Orgánico INDEX 30</title>
+    <title>Visualizador 3D Interactivo - Patio Mineral Orgánico INDEX 30.1</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; overflow: hidden; background-color: #5c7e9c; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; touch-action: none; user-select: none; }
@@ -82,7 +82,7 @@
 <body>
 
     <div id="canvas-container"></div>
-    <div id="version-indicator">INDEX 30</div>
+    <div id="version-indicator">INDEX 30.1</div>
     <div id="instrucciones">Toca la puerta corrediza, asador, cajones, repisas y persiana.<br>Arrastra 360° para rotar | Pellizca / Rueda para zoom</div>
 
     <div id="ui-muros-container">
@@ -131,7 +131,7 @@
                 const d = document.createElement('div');
                 d.className = 'load-error';
                 d.style.cssText = 'position:absolute;inset:70px 20px auto 20px;z-index:100;background:#0f172a;color:#fff;padding:18px;border-radius:14px;font:600 14px/1.45 sans-serif;text-align:center;';
-                d.textContent = 'Error de carga del visualizador. INDEX 30';
+                d.textContent = 'Error de carga del visualizador. INDEX 30.1';
                 c.appendChild(d);
             }
         });
@@ -141,7 +141,7 @@
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-        // INDEX 30: cajonera Oeste + 2 repisas extraíbles totales + cajones inferiores completos.
+        // INDEX 30.1: cajonera Oeste + 2 repisas extraíbles totales + cajones inferiores completos.
         const TWEEN = (() => {
             const active = new Set();
             const Easing = {
@@ -790,7 +790,7 @@
             // =====================================================================
             // 
             // =====================================================================
-            // CAJONERA — MÓDULO OESTE — INDEX 30
+            // CAJONERA — MÓDULO OESTE — INDEX 30.1
             // =====================================================================
             // Se conserva la geometría de 17.9 y se corrige la cajonera para que
             // no existan huecos entre frentes ni un espacio entre cajones y tapa.
@@ -1561,7 +1561,7 @@
         if (profRestanteAtras > 0) { const cubAtrasAsador = crearCaja(wAsador, topH, profRestanteAtras, matMicrocemento); cubAtrasAsador.position.set(posX_ModAsador + wAsador / 2, CONFIG.barra.altoTotal - topH / 2, profRestanteAtras / 2); grupoMuroNorte.add(cubAtrasAsador); }
 
         // =====================================================================
-        // CIERRE COMPLETO DE LA BARRA NORTE — INDEX 30
+        // CIERRE COMPLETO DE LA BARRA NORTE — INDEX 30.1
         // =====================================================================
         // La cubierta debe cubrir exactamente toda la barra de 274 cm de ancho,
         // incluidos los pilares laterales. Se añade una pieza continua para evitar
@@ -1788,7 +1788,7 @@
             const marcoExtSup = crearCaja(wNicho + 9, 5.0, 4.0, matMicrocemento); marcoExtSup.position.set(centerX, hNichoTotal + 0.5, profNicho - 0.5); grupoNichoNorte.add(marcoExtSup);
 
             const refriW = 92, refriH = 180, refriD = 80;
-            // INDEX 30 — grupo independiente para poder retirar únicamente el refrigerador
+            // INDEX 30.1 — grupo independiente para poder retirar únicamente el refrigerador
             // y conservar íntegro el nicho arquitectónico.
             const grupoRefrigeradorNorte = new THREE.Group(); grupoRefrigeradorNorteGlobal = grupoRefrigeradorNorte;
             grupoRefrigeradorNorte.name = 'Mobiliario_Refrigerador_Norte';
@@ -1879,7 +1879,7 @@
         const estadoFrentesListon = document.getElementById('estado-frentes-liston');
         let frentesListonActivo = false;
         // =========================================================================
-        // INDEX 30 — MODO "SOLO ARQUITECTURA"
+        // INDEX 30.1 — MODO "SOLO ARQUITECTURA"
         // Deja visibles únicamente:
         //   • muros perimetrales
         //   • barra/cubierta estructural, sin PVC ni mobiliario
@@ -1915,20 +1915,26 @@
                 sur: guardarVisibilidadGrupo(grupoMuroSur)
             };
 
-            // 1) BARRA: conserva el muro Norte y únicamente las piezas estructurales
-            // de microcemento. Todo PVC, cuerpos de gabinete, asador y decoración desaparece.
+            // 1) BARRA: solo arquitectura permanente.
+            // Conserva muro + cubierta + piezas de microcemento.
+            // Todo PVC, asador, plantas, botes de basura y accesorios desaparece.
             grupoMuroNorte.traverse(obj => {
-                if (obj === meshMuroNorte) return;
-                if (obj.isMesh || obj.isGroup || obj.isObject3D) {
-                    const mat = obj.material;
-                    const esPVC = mat === matTKPVC || mat === matPVC ||
-                                  mat === matPVCListonadoFrentes ||
-                                  obj.userData?.esFrenteBarra === true;
-                    if (esPVC) obj.visible = false;
+                if (obj === meshMuroNorte) {
+                    obj.visible = true;
+                } else if (obj.isMesh) {
+                    obj.visible = (obj.material === matMicrocemento);
+                } else if (obj.isGroup) {
+                    obj.visible = true;
                 }
             });
 
-            // El asador y las plantas no forman parte de la arquitectura permanente.
+            // Zoclo inferior de la barra: microcemento únicamente en este modo.
+            if (typeof zocaloBarra !== 'undefined' && zocaloBarra) {
+                zocaloBarra.material = matMicrocemento;
+                zocaloBarra.visible = true;
+            }
+
+            // Grupos explícitamente considerados mobiliario.
             grupoMuroNorte.traverse(obj => {
                 if (obj.name === 'Mobiliario_Asador_Barra' ||
                     obj.name === 'Mobiliario_Planta_Barra') {
@@ -1936,14 +1942,19 @@
                 }
             });
 
-            // 2) NICHO: conserva la caja/revestimiento arquitectónico, pero elimina
-            // exclusivamente el refrigerador.
-            if (grupoRefrigeradorNorteGlobal) {
-                grupoRefrigeradorNorteGlobal.visible = false;
-            }
+            // 2) NICHO DEL REFRIGERADOR: únicamente microcemento.
+            // Se elimina el revestimiento interior de PVC/madera y el refrigerador.
+            grupoNichoNorte.traverse(obj => {
+                if (obj.isMesh) {
+                    obj.visible = (obj.material === matMicrocemento);
+                } else if (obj.isGroup) {
+                    obj.visible = true;
+                }
+            });
+            if (grupoRefrigeradorNorteGlobal) grupoRefrigeradorNorteGlobal.visible = false;
 
-            // 3) COBERTIZO: conserva solamente el techo sólido. Se eliminan puerta,
-            // lavadora/secadora, cajonera, repisas, paneles interiores y accesorios.
+            // 3) COBERTIZO: solo escalón/piso + techo sólido.
+            // Se eliminan lavadora/secadora, puerta, cajonera, repisas, PVC y accesorios.
             nichoSurGroupSoloArquitectura();
 
             modoArquitecturaActivo = true;
@@ -1952,10 +1963,16 @@
 
         function nichoSurGroupSoloArquitectura() {
             if (!nichoSurGroupGlobal) return;
-            nichoSurGroupGlobal.traverse(obj => {
-                // Solo el techo exterior completo permanece visible.
-                obj.visible = (obj === techoLavanderia);
-            });
+
+            // Ocultar absolutamente todo el contenido del cobertizo.
+            nichoSurGroupGlobal.traverse(obj => { obj.visible = false; });
+
+            // Recuperar el escalón/piso real del cobertizo.
+            const escalon = nichoSurGroupGlobal.getObjectByName('Escalon_Cobertizo_5cm_Pendiente_1cm');
+            if (escalon) escalon.traverse(obj => { obj.visible = true; });
+
+            // Recuperar el techo exterior COMPLETO, incluidos sus tapas/capas.
+            if (techoLavanderia) techoLavanderia.traverse(obj => { obj.visible = true; });
         }
 
 
@@ -1967,6 +1984,7 @@
                 restaurarVisibilidadGrupo(grupoMuroNorte, visibilidadArquitecturaGuardada?.norte);
                 restaurarVisibilidadGrupo(grupoNichoNorte, visibilidadArquitecturaGuardada?.nicho);
                 restaurarVisibilidadGrupo(grupoMuroSur, visibilidadArquitecturaGuardada?.sur);
+                if (typeof zocaloBarra !== 'undefined' && zocaloBarra) zocaloBarra.material = matTKPVC;
                 modoArquitecturaActivo = false;
                 estadoModoArquitectura.textContent = 'OFF';
             }
