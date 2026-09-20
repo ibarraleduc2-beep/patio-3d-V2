@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
-    <title>Visualizador 3D Interactivo - Patio Mineral Orgánico INDEX 30.1</title>
+    <title>Visualizador 3D Interactivo - Patio Mineral Orgánico INDEX 30.5</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; overflow: hidden; background-color: #5c7e9c; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; touch-action: none; user-select: none; }
@@ -25,6 +25,9 @@
         #btn-toggle-techo-lavanderia { min-width: 190px; justify-content: center; }
         #estado-techo-lavanderia { margin-left: 3px; font-size: 10px; opacity: 0.75; }
         #btn-toggle-muros:hover { background-color: #1e293b; }
+        #btn-toggle-cotas { padding: 10px 18px; background-color: #0f172a; color: #ffffff; border: 1.5px solid #334155; border-radius: 20px; font-size: 13px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); display: flex; align-items: center; gap: 6px; backdrop-filter: blur(6px); transition: all 0.2s ease; white-space: nowrap; }
+        #btn-toggle-cotas:hover { background-color: #1e293b; }
+        #btn-toggle-cotas.active { background-color: #334155; border-color: #94a3b8; }
         #menu-muros { display: none; margin-top: 8px; background: rgba(15, 23, 42, 0.92); color: #ffffff; padding: 14px 16px; border-radius: 14px; box-shadow: 0 6px 20px rgba(0,0,0,0.4); backdrop-filter: blur(8px); border: 1px solid #334155; min-width: 170px; animation: fadeInMenu 0.2s ease-out; }
         #menu-muros.active { display: flex; flex-direction: column; gap: 10px; }
         @keyframes fadeInMenu { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
@@ -82,10 +85,11 @@
 <body>
 
     <div id="canvas-container"></div>
-    <div id="version-indicator">INDEX 30.1</div>
+    <div id="version-indicator">INDEX 30.5</div>
     <div id="instrucciones">Toca la puerta corrediza, asador, cajones, repisas y persiana.<br>Arrastra 360° para rotar | Pellizca / Rueda para zoom</div>
 
     <div id="ui-muros-container">
+        <!-- INDEX 30.5: se eliminan los controles de Muro falso Pocket, Frentes barra y Techo lavandería. -->
         <button id="btn-toggle-muros">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/><path d="M15 3v18"/><path d="M3 9h18"/><path d="M3 15h18"/></svg>
             Muros ▾
@@ -97,11 +101,9 @@
             <label class="item-check-muro"><span>Muro Sur</span><input type="checkbox" id="chk-muro-sur" checked></label>
             <label class="item-check-muro"><span>Nicho Norte (Refrigerador)</span><input type="checkbox" id="chk-muro-nicho" checked></label>
         </div>
-        <button id="btn-toggle-muro-falso-pocket" type="button">Muro falso Pocket <span id="estado-muro-falso-pocket">ON</span></button>
-        <button id="btn-toggle-frentes-liston" type="button">Frentes barra <span id="estado-frentes-liston">LISO</span></button>
-        <button id="btn-toggle-techo-lavanderia" type="button">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12 12 4l9 8"/><path d="M5 10v9h14v-9"/><path d="M9 19v-5h6v5"/></svg>
-            Techo lavandería <span id="estado-techo-lavanderia">ON</span>
+        <button id="btn-toggle-cotas" type="button" aria-pressed="false">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16"/><path d="M4 18h16"/><path d="M7 3v6"/><path d="M17 15v6"/><path d="M12 9v6"/></svg>
+            Cotas <span id="estado-cotas">OFF</span>
         </button>
         <button id="btn-toggle-modo-arquitectura" type="button">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16"/><path d="M6 20V8l6-4 6 4v12"/><path d="M9 20v-6h6v6"/></svg>
@@ -131,7 +133,7 @@
                 const d = document.createElement('div');
                 d.className = 'load-error';
                 d.style.cssText = 'position:absolute;inset:70px 20px auto 20px;z-index:100;background:#0f172a;color:#fff;padding:18px;border-radius:14px;font:600 14px/1.45 sans-serif;text-align:center;';
-                d.textContent = 'Error de carga del visualizador. INDEX 30.1';
+                d.textContent = 'Error de carga del visualizador. INDEX 30.5';
                 c.appendChild(d);
             }
         });
@@ -141,7 +143,7 @@
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-        // INDEX 30.1: cajonera Oeste + 2 repisas extraíbles totales + cajones inferiores completos.
+        // INDEX 30.5: cajonera Oeste + 2 repisas extraíbles totales + cajones inferiores completos.
         const TWEEN = (() => {
             const active = new Set();
             const Easing = {
@@ -723,6 +725,7 @@
         let muroFalsoPocketGroup = null;
         let nichoSurGroupGlobal = null;
         let grupoRefrigeradorNorteGlobal = null;
+        let ondaMuroNorteGroup = null;
         function construirCobertizoSur() {
             const nichoSurGroup = new THREE.Group(); nichoSurGroupGlobal = nichoSurGroup;
             const profDesague = 8;
@@ -790,7 +793,7 @@
             // =====================================================================
             // 
             // =====================================================================
-            // CAJONERA — MÓDULO OESTE — INDEX 30.1
+            // CAJONERA — MÓDULO OESTE — INDEX 30.5
             // =====================================================================
             // Se conserva la geometría de 17.9 y se corrige la cajonera para que
             // no existan huecos entre frentes ni un espacio entre cajones y tapa.
@@ -1456,6 +1459,8 @@
             // ni separación posterior. La parte superior es ondulada; la parte
             // inferior queda a Y=125, por lo que cubre 95 cm y deja 66 cm de ventana.
             const g = new THREE.Group();
+            g.name = 'Onda_3D_LED_Muro_Norte';
+            ondaMuroNorteGroup = g;
             // Revestimiento continuo: sin separación contra el muro norte,
             // llega exactamente al muro oeste y remata en el borde exterior
             // del nicho, sin invadirlo.
@@ -1490,7 +1495,10 @@
             const estuco = new THREE.Mesh(
                 new THREE.ExtrudeGeometry(shape, {
                     depth: 20.0,
-                    bevelEnabled: false
+                    bevelEnabled: true,
+                    bevelThickness: 1.4,
+                    bevelSize: 1.4,
+                    bevelSegments: 3
                 }),
                 matMuro
             );
@@ -1503,13 +1511,30 @@
             estuco.receiveShadow = true;
             g.add(estuco);
 
+            // Borde de sombra: un contorno ligeramente más grueso y oscuro
+            // detrás de la línea LED para que la onda conserve lectura 3D
+            // incluso con iluminación frontal.
+            const bordeSombraOnda = new THREE.Mesh(
+                new THREE.TubeGeometry(topCurve, 240, 1.15, 12, false),
+                new THREE.MeshStandardMaterial({
+                    color: 0x8a6a48,
+                    roughness: 0.72,
+                    metalness: 0.0
+                })
+            );
+            bordeSombraOnda.position.z = 0.10;
+            bordeSombraOnda.castShadow = true;
+            bordeSombraOnda.receiveShadow = true;
+            bordeSombraOnda.renderOrder = 12;
+            g.add(bordeSombraOnda);
+
             // LED: integrada en el borde ondulado, sin cruzar el nicho.
             const led = new THREE.Mesh(
                 new THREE.TubeGeometry(topCurve, 240, 0.38, 12, false),
                 new THREE.MeshBasicMaterial({ color: 0xffc985 })
             );
-            led.position.z = 0.05;
-            led.renderOrder = 13;
+            led.position.z = 0.24;
+            led.renderOrder = 14;
             g.add(led);
 
             const glow = new THREE.PointLight(0xffc27d, 1.0, 170, 2);
@@ -1561,28 +1586,27 @@
         if (profRestanteAtras > 0) { const cubAtrasAsador = crearCaja(wAsador, topH, profRestanteAtras, matMicrocemento); cubAtrasAsador.position.set(posX_ModAsador + wAsador / 2, CONFIG.barra.altoTotal - topH / 2, profRestanteAtras / 2); grupoMuroNorte.add(cubAtrasAsador); }
 
         // =====================================================================
-        // CIERRE COMPLETO DE LA BARRA NORTE — INDEX 30.1
+        // BARRA NORTE — BAHÍA EN U PARA EL ASADOR — INDEX 30.5
         // =====================================================================
-        // La cubierta debe cubrir exactamente toda la barra de 274 cm de ancho,
-        // incluidos los pilares laterales. Se añade una pieza continua para evitar
-        // que el mueble inferior quede fuera de la cubierta.
+        // IMPORTANTE:
+        // La encimera NO pasa por encima del asador.
+        // Se conserva únicamente:
+        //   1) ala izquierda,
+        //   2) puente posterior,
+        //   3) ala derecha.
+        // Esto genera una abertura real en forma de U alrededor del asador.
         const anchoBarraCerrada = anchoBarraExclusivo;
-        const cubiertaBarraContinua = crearCaja(
-            anchoBarraCerrada,
-            topH,
-            topD,
-            matMicrocemento
-        );
-        cubiertaBarraContinua.position.set(
-            anchoBarraCerrada / 2,
-            CONFIG.barra.altoTotal - topH / 2,
-            topD / 2
-        );
-        cubiertaBarraContinua.rotation.x = anguloPendiente;
-        cubiertaBarraContinua.castShadow = true;
-        cubiertaBarraContinua.receiveShadow = true;
-        cubiertaBarraContinua.name = 'Cubierta_Barra_Norte_Continua';
-        grupoMuroNorte.add(cubiertaBarraContinua);
+
+        // Las alas laterales ya son cubiertas independientes (cubIzq / cubDer).
+        // El puente posterior existente (cubAtrasAsador) completa la U.
+        // No crear ninguna pieza continua sobre el vano del asador.
+        cubIzq.name = 'Cubierta_Barra_Ala_Izquierda';
+        cubDer.name = 'Cubierta_Barra_Ala_Derecha';
+        if (typeof cubAtrasAsador !== 'undefined') {
+            cubAtrasAsador.name = 'Cubierta_Barra_Puente_Posterior_Asador';
+            cubAtrasAsador.castShadow = true;
+            cubAtrasAsador.receiveShadow = true;
+        }
 
         // Panel lateral Este de cierre. Ocupa todo el extremo de la barra principal
         // y evita que el mueble/cubierta queden abiertos en ese lado.
@@ -1744,7 +1768,7 @@
                 traseraCajon.position.set(0, hCajonBarra / 2, dCajonBarra - esp / 2);
                 groupCajon.add(traseraCajon);
                 groupCajon.position.set(xCenter, CONFIG.barra.altoZocalo + hPuerta, 0); grupoMuroNorte.add(groupCajon);
-                hitBoxCajon.userData = { tipo: 'extraible', grupo: groupCajon, abierto: false, posZ_cerrado: 0, posZ_abierto: 94 }; objetosInteractivos.push(hitBoxCajon);
+                hitBoxCajon.userData = { tipo: 'extraible', grupo: groupCajon, abierto: false, posZ_cerrado: 0, posZ_abierto: 12 }; objetosInteractivos.push(hitBoxCajon);
 
                 const repisa = crearCaja(wSeccion - 2, esp, dGab - 5, matPVC); repisa.position.set(xCenter, CONFIG.barra.altoZocalo + hPuerta / 2, dGab / 2); grupoMuroNorte.add(repisa);
 
@@ -1788,7 +1812,7 @@
             const marcoExtSup = crearCaja(wNicho + 9, 5.0, 4.0, matMicrocemento); marcoExtSup.position.set(centerX, hNichoTotal + 0.5, profNicho - 0.5); grupoNichoNorte.add(marcoExtSup);
 
             const refriW = 92, refriH = 180, refriD = 80;
-            // INDEX 30.1 — grupo independiente para poder retirar únicamente el refrigerador
+            // INDEX 30.5 — grupo independiente para poder retirar únicamente el refrigerador
             // y conservar íntegro el nicho arquitectónico.
             const grupoRefrigeradorNorte = new THREE.Group(); grupoRefrigeradorNorteGlobal = grupoRefrigeradorNorte;
             grupoRefrigeradorNorte.name = 'Mobiliario_Refrigerador_Norte';
@@ -1850,36 +1874,23 @@
         const btnToggleMuros = document.getElementById('btn-toggle-muros'), menuMuros = document.getElementById('menu-muros');
         btnToggleMuros.addEventListener('click', (e) => { e.stopPropagation(); menuMuros.classList.toggle('active'); });
         document.addEventListener('click', (e) => { if (!document.getElementById('ui-muros-container').contains(e.target)) menuMuros.classList.remove('active'); });
-        document.getElementById('chk-muro-norte').addEventListener('change', e => grupoMuroNorte.visible = e.target.checked);
+        document.getElementById('chk-muro-norte').addEventListener('change', e => {
+            const visible = e.target.checked;
+            grupoMuroNorte.visible = visible;
+            // La onda 3D y su LED forman parte del Muro Norte:
+            // nunca deben quedar separadas del estado del muro.
+            if (ondaMuroNorteGroup) ondaMuroNorteGroup.visible = visible;
+        });
         document.getElementById('chk-muro-este').addEventListener('change', e => grupoMuroEste.visible = e.target.checked);
         document.getElementById('chk-muro-oeste').addEventListener('change', e => grupoMuroOeste.visible = e.target.checked);
         document.getElementById('chk-muro-sur').addEventListener('change', e => grupoMuroSur.visible = e.target.checked);
         document.getElementById('chk-muro-nicho').addEventListener('change', e => grupoNichoNorte.visible = e.target.checked);
+        if (ondaMuroNorteGroup) {
+            ondaMuroNorteGroup.visible = document.getElementById('chk-muro-norte').checked;
+        }
 
-        const btnTechoLavanderia = document.getElementById('btn-toggle-techo-lavanderia');
-        const estadoTechoLavanderia = document.getElementById('estado-techo-lavanderia');
-        btnTechoLavanderia.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (!techoLavanderia) return;
-            const nuevoEstado = !techoLavanderia.visible;
-            techoLavanderia.visible = nuevoEstado;
-            if (cieloRasoLavanderia) cieloRasoLavanderia.visible = nuevoEstado;
-            estadoTechoLavanderia.textContent = nuevoEstado ? 'ON' : 'OFF';
-        });
-
-        const btnMuroFalsoPocket = document.getElementById('btn-toggle-muro-falso-pocket');
-        const estadoMuroFalsoPocket = document.getElementById('estado-muro-falso-pocket');
-        btnMuroFalsoPocket.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const visible = !muroFalsoPocketGroup.visible; muroFalsoPocketGroup.visible = visible;
-            estadoMuroFalsoPocket.textContent = visible ? 'ON' : 'OFF';
-        });
-
-        const btnFrentesListon = document.getElementById('btn-toggle-frentes-liston');
-        const estadoFrentesListon = document.getElementById('estado-frentes-liston');
-        let frentesListonActivo = false;
         // =========================================================================
-        // INDEX 30.1 — MODO "SOLO ARQUITECTURA"
+        // INDEX 30.5 — MODO "SOLO ARQUITECTURA"
         // Deja visibles únicamente:
         //   • muros perimetrales
         //   • barra/cubierta estructural, sin PVC ni mobiliario
@@ -1928,6 +1939,12 @@
                 }
             });
 
+            // La onda es arquitectura permanente: estuco 3D + LED lineal.
+            if (ondaMuroNorteGroup) {
+                ondaMuroNorteGroup.visible = true;
+                ondaMuroNorteGroup.traverse(obj => { obj.visible = true; });
+            }
+
             // Zoclo inferior de la barra: microcemento únicamente en este modo.
             if (typeof zocaloBarra !== 'undefined' && zocaloBarra) {
                 zocaloBarra.material = matMicrocemento;
@@ -1964,15 +1981,32 @@
         function nichoSurGroupSoloArquitectura() {
             if (!nichoSurGroupGlobal) return;
 
-            // Ocultar absolutamente todo el contenido del cobertizo.
-            nichoSurGroupGlobal.traverse(obj => { obj.visible = false; });
+            // IMPORTANTE: el grupo contenedor DEBE permanecer visible.
+            // Si el padre está en visible=false, Three.js no renderiza sus hijos
+            // aunque los hijos individualmente tengan visible=true.
+            nichoSurGroupGlobal.visible = true;
 
-            // Recuperar el escalón/piso real del cobertizo.
+            // Ocultar todo el contenido del cobertizo.
+            nichoSurGroupGlobal.traverse(obj => {
+                if (obj !== nichoSurGroupGlobal) obj.visible = false;
+            });
+
+            // Recuperar ÚNICAMENTE el escalón/piso arquitectónico real:
+            // 5 cm en la parte posterior con caída total de 1 cm hacia el frente.
             const escalon = nichoSurGroupGlobal.getObjectByName('Escalon_Cobertizo_5cm_Pendiente_1cm');
-            if (escalon) escalon.traverse(obj => { obj.visible = true; });
+            if (escalon) {
+                escalon.visible = true;
+            }
 
-            // Recuperar el techo exterior COMPLETO, incluidos sus tapas/capas.
-            if (techoLavanderia) techoLavanderia.traverse(obj => { obj.visible = true; });
+            // Recuperar el techo exterior COMPLETO y sólido, incluyendo:
+            // • prisma cerrado de microcemento
+            // • cara superior sólida
+            // • intradós/cara inferior sólida
+            // • núcleo Durock
+            if (techoLavanderia) {
+                techoLavanderia.visible = true;
+                techoLavanderia.traverse(obj => { obj.visible = true; });
+            }
         }
 
 
@@ -1990,10 +2024,126 @@
             }
         });
 
-        btnFrentesListon.addEventListener('click', (e) => {
-            e.stopPropagation(); frentesListonActivo = !frentesListonActivo;
-            for (const mesh of frentesBarraRegistrados) mesh.material = frentesListonActivo ? matPVCListonadoFrentes : matTKPVC;
-            estadoFrentesListon.textContent = frentesListonActivo ? 'LISTONADO' : 'LISO';
+        // =========================================================================
+        // INDEX 30.5 — SISTEMA DE COTAS PROFESIONALES
+        // Las cotas son independientes de la interacción 3D: no tienen hitbox y
+        // permanecen fuera de los objetos interactivos. Se pueden activar/desactivar.
+        // =========================================================================
+        const grupoCotas = new THREE.Group();
+        grupoCotas.name = 'COTAS_PROFESIONALES';
+        grupoCotas.visible = false;
+        masterGroup.add(grupoCotas);
+
+        const matCota = new THREE.LineBasicMaterial({ color: 0xe2e8f0, transparent: true, opacity: 0.95, depthTest: false, depthWrite: false });
+        const matCotaFondo = new THREE.SpriteMaterial({ transparent: true, opacity: 0.96, depthTest: false, depthWrite: false });
+
+        function crearEtiquetaCota(texto, posicion, escala = 42) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 768; canvas.height = 192;
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'rgba(15,23,42,0.88)';
+            const r = 30, x = 8, y = 20, w = canvas.width - 16, h = canvas.height - 40;
+            ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); ctx.fill();
+            ctx.strokeStyle = 'rgba(226,232,240,0.72)'; ctx.lineWidth = 4; ctx.stroke();
+            ctx.fillStyle = '#f8fafc'; ctx.font = '700 58px Arial, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(texto, canvas.width/2, canvas.height/2 + 2);
+            const tex = new THREE.CanvasTexture(canvas); tex.colorSpace = THREE.SRGBColorSpace; tex.needsUpdate = true;
+            const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false, depthWrite: false }));
+            sprite.position.copy(posicion); sprite.scale.set(escala * 4.0, escala, 1); sprite.renderOrder = 999;
+            grupoCotas.add(sprite); return sprite;
+        }
+
+        function crearLineaCota(a, b) {
+            const geo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(...a), new THREE.Vector3(...b)]);
+            const line = new THREE.Line(geo, matCota); line.renderOrder = 998; grupoCotas.add(line); return line;
+        }
+
+        function crearCotaHorizontal(x1, x2, z, y, texto, offset = 8) {
+            const yy = y + offset;
+            crearLineaCota([x1, yy, z], [x2, yy, z]);
+            const tick = 5;
+            crearLineaCota([x1, yy-tick, z], [x1, yy+tick, z]);
+            crearLineaCota([x2, yy-tick, z], [x2, yy+tick, z]);
+            crearLineaCota([x1, y, z], [x1, yy, z]);
+            crearLineaCota([x2, y, z], [x2, yy, z]);
+            crearEtiquetaCota(texto, new THREE.Vector3((x1+x2)/2, yy+10, z), 18);
+        }
+
+        function crearCotaProfundidad(z1, z2, x, y, texto, offset = 8) {
+            const xx = x + offset;
+            crearLineaCota([xx, y, z1], [xx, y, z2]);
+            const tick = 5;
+            crearLineaCota([xx-tick, y, z1], [xx+tick, y, z1]);
+            crearLineaCota([xx-tick, y, z2], [xx+tick, y, z2]);
+            crearLineaCota([x, y, z1], [xx, y, z1]);
+            crearLineaCota([x, y, z2], [xx, y, z2]);
+            crearEtiquetaCota(texto, new THREE.Vector3(xx+12, y+10, (z1+z2)/2), 18);
+        }
+
+        function crearCotaVertical(y1, y2, x, z, texto, offset = 8) {
+            const xx = x + offset;
+            crearLineaCota([xx, y1, z], [xx, y2, z]);
+            const tick = 5;
+            crearLineaCota([xx-tick, y1, z], [xx+tick, y1, z]);
+            crearLineaCota([xx-tick, y2, z], [xx+tick, y2, z]);
+            crearLineaCota([x, y1, z], [xx, y1, z]);
+            crearLineaCota([x, y2, z], [xx, y2, z]);
+            crearEtiquetaCota(texto, new THREE.Vector3(xx+12, (y1+y2)/2, z), 18);
+        }
+
+        // Planta general
+        crearCotaHorizontal(0, CONFIG.muroNorte.ancho, -48, 316, 'MURO NORTE · 390 cm', 0);
+        crearCotaProfundidad(0, CONFIG.muroEste.largoTotal, 390, 316, 'MURO ESTE · 400 cm', 48);
+        crearCotaProfundidad(0, CONFIG.muroOeste.largoTotal, 0, 265, 'MURO OESTE · 487 cm', -48);
+
+        // Alturas principales
+        crearCotaVertical(0, CONFIG.muroNorte.alto, 0, 45, '316 cm · NORTE', -48);
+        crearCotaVertical(0, CONFIG.muroOeste.alto, 0, 455, '260 cm · OESTE', -48);
+
+        // Ventanal Este: 265 × 210 cm
+        crearCotaProfundidad(110, 375, 390, 300, 'VENTANAL · 265 cm', 30);
+        crearCotaVertical(0, CONFIG.muroEste.alturaVidrio, 390, 242.5, 'VENTANAL · 210 cm', 30);
+
+        // Vano Oeste y sus alturas
+        crearCotaProfundidad(100, 400, 0, 245, 'VANO · 300 cm', -30);
+        crearCotaVertical(100, 200, 0, 250, 'VANO · 100 cm', -30);
+        crearCotaVertical(0, 100, 0, 250, 'MURO INF. · 100 cm', -65);
+        crearCotaVertical(200, 260, 0, 250, 'MURO SUP. · 60 cm', -65);
+
+        // Barra: ancho de módulos, profundidad y altura
+        const xBarStart = 6;
+        const xIzqFin = xBarStart + CONFIG.modulos.izquierdo.ancho;
+        const xAsaFin = xIzqFin + CONFIG.modulos.asador.ancho;
+        const xDerFin = xAsaFin + CONFIG.modulos.derecho.ancho;
+        crearCotaHorizontal(xBarStart, xIzqFin, -18, 95, '85.5 cm', 0);
+        crearCotaHorizontal(xIzqFin, xAsaFin, -18, 95, '91 cm · ASADOR', 0);
+        crearCotaHorizontal(xAsaFin, xDerFin, -18, 95, '85.5 cm', 0);
+        crearCotaHorizontal(xBarStart, xDerFin, 118, 95, 'BARRA · 262 cm', 0);
+        crearCotaProfundidad(0, CONFIG.barra.profundidadTotal, 135, 92, 'PROF. BARRA · 100 cm', 0);
+        crearCotaVertical(0, CONFIG.barra.altoTotal, 135, 50, 'ALTURA · 90 cm', 0);
+        crearCotaHorizontal(xDerFin, xDerFin + grosorPier, 118, 95, '6 cm', 0);
+        crearCotaHorizontal(xDerFin + grosorPier, xDerFin + grosorPier + CONFIG.modulos.nichoNorte.ancho, 118, 95, 'NICHO · 110 cm', 0);
+
+        // Cobertizo de lavandería y cubierta
+        crearCotaHorizontal(xP3, xP2, 515, 220, 'COBERTIZO · 148 cm', 0);
+        crearCotaProfundidad(400, 498, xP2, 220, '98 cm', 18);
+        crearCotaProfundidad(370, 400, xP2 + 8, 220, 'ALERO · 30 cm', 18);
+        crearCotaHorizontal(xP4, xP1, 385, 220, 'TRAMO OESTE · 87 cm', 0);
+        crearCotaHorizontal(xP1, 390, 385, 220, 'TRAMO · 215 cm', 0);
+
+        // Escalón de piso del cobertizo
+        crearCotaVertical(0, 5, xP3-20, 410, 'ESCALÓN · 5 cm', -18);
+        crearCotaVertical(0, 4, xP2+20, 410, 'FRENTE · 4 cm', 18);
+
+        const btnCotas = document.getElementById('btn-toggle-cotas');
+        const estadoCotas = document.getElementById('estado-cotas');
+        btnCotas.addEventListener('click', (e) => {
+            e.stopPropagation();
+            grupoCotas.visible = !grupoCotas.visible;
+            btnCotas.classList.toggle('active', grupoCotas.visible);
+            btnCotas.setAttribute('aria-pressed', String(grupoCotas.visible));
+            estadoCotas.textContent = grupoCotas.visible ? 'ON' : 'OFF';
         });
 
         const raycaster = new THREE.Raycaster(), mouse = new THREE.Vector2(); let pointerDownPos = { x: 0, y: 0 };
@@ -2011,8 +2161,17 @@
                 const duration = 500, targetAbierto = !data.abierto;
                 if (data.tipo === 'extraible') {
                     data.animando = true;
-                    const targetZ = targetAbierto ? data.posZ_abierto : data.posZ_cerrado;
-                    new TWEEN.Tween(data.grupo.position).to({ x: data.grupo.position.x, y: data.grupo.position.y, z: targetZ }, duration).easing(TWEEN.Easing.Cubic.Out).start();
+                    // posZ_abierto / posZ_cerrado son DESPLAZAMIENTOS relativos.
+                    // Antes se usaban como coordenadas absolutas, provocando que
+                    // los cajones saltaran hasta el exterior del muro Norte.
+                    if (data.baseZ === undefined) data.baseZ = data.grupo.position.z;
+                    const deltaZ = targetAbierto ? data.posZ_abierto : data.posZ_cerrado;
+                    const targetZ = data.baseZ + deltaZ;
+                    new TWEEN.Tween(data.grupo.position).to({
+                        x: data.grupo.position.x,
+                        y: data.grupo.position.y,
+                        z: targetZ
+                    }, duration).easing(TWEEN.Easing.Cubic.Out).start();
                     setTimeout(() => { data.animando = false; }, duration + 30);
                 }
                 else if (data.tipo === 'puerta' || data.tipo === 'puerta_louver') new TWEEN.Tween(data.grupo.rotation).to({ y: targetAbierto ? data.rotY_abierto : data.rotY_cerrado }, duration).easing(TWEEN.Easing.Cubic.Out).start();
